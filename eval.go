@@ -3,6 +3,7 @@ package golang
 import (
 	"bytes"
 	"fmt"
+	"strconv"
 
 	schema "github.com/Opticode-Project/go-compiler/golang"
 	program "github.com/Opticode-Project/go-compiler/program"
@@ -86,6 +87,12 @@ func (g *Generator) EvalIndexed(buf *bytes.Buffer, opcode schema.Opcode, node *p
 		return g.op_if(buf, node, evalFlags)
 	case schema.OpcodeFunc:
 		return g.op_func(buf, node, evalFlags)
+	case schema.OpcodeCall:
+		return g.op_call(buf, node, evalFlags)
+	case schema.OpcodeType:
+		return g.op_type(buf, node, evalFlags)
+	case schema.OpcodeReturn:
+		return g.op_return(buf, node, evalFlags)
 	}
 
 	return fmt.Errorf("invalid opcode on node with opcode of %s", opcode)
@@ -99,8 +106,71 @@ func (g *Generator) EvalBinary(buf *bytes.Buffer, opcode schema.Opcode, node *pr
 		return g.op_constValue(buf, node, evalFlags)
 	case schema.OpcodeVarValue:
 		return g.op_varValue(buf, node, evalFlags)
+
 	case schema.OpcodeEqual:
-		return g.op_equal(buf, node, evalFlags)
+		return g.op_binary(buf, node, TokenCompare, evalFlags)
+	case schema.OpcodeNotEqual:
+		return g.op_binary(buf, node, TokenNotEqual, evalFlags)
+	case schema.OpcodeLess:
+		return g.op_binary(buf, node, TokenLess, evalFlags)
+	case schema.OpcodeLessEqual:
+		return g.op_binary(buf, node, TokenLessEqual, evalFlags)
+	case schema.OpcodeGreater:
+		return g.op_binary(buf, node, TokenGreater, evalFlags)
+	case schema.OpcodeGreaterEqual:
+		return g.op_binary(buf, node, TokenGreaterEqual, evalFlags)
+	case schema.OpcodeAnd:
+		return g.op_binary(buf, node, TokenAnd, evalFlags)
+	case schema.OpcodeOr:
+		return g.op_binary(buf, node, TokenOr, evalFlags)
+
+	case schema.OpcodeAdd:
+		return g.op_binary(buf, node, TokenPlus, evalFlags)
+	case schema.OpcodeSub:
+		return g.op_binary(buf, node, TokenMinus, evalFlags)
+	case schema.OpcodeMul:
+		return g.op_binary(buf, node, TokenStar, evalFlags)
+	case schema.OpcodeDiv:
+		return g.op_binary(buf, node, TokenSlash, evalFlags)
+	case schema.OpcodeMod:
+		return g.op_binary(buf, node, TokenModulus, evalFlags)
+	case schema.OpcodeAssign:
+		return g.op_binary(buf, node, TokenEqual, evalFlags)
+	case schema.OpcodeAddAssign:
+		return g.op_binary(buf, node, TokenAddAssign, evalFlags)
+	case schema.OpcodeSubAssign:
+		return g.op_binary(buf, node, TokenSubAssign, evalFlags)
+	case schema.OpcodeMulAssign:
+		return g.op_binary(buf, node, TokenMulAssign, evalFlags)
+	case schema.OpcodeDivAssign:
+		return g.op_binary(buf, node, TokenDivAssign, evalFlags)
+	case schema.OpcodeModAssign:
+		return g.op_binary(buf, node, TokenModAssign, evalFlags)
+
+	case schema.OpcodeBitAndAssign:
+		return g.op_binary(buf, node, TokenBitAndAssign, evalFlags)
+	case schema.OpcodeBitOrAssign:
+		return g.op_binary(buf, node, TokenBitOrAssign, evalFlags)
+	case schema.OpcodeBitXorAssign:
+		return g.op_binary(buf, node, TokenBitXorAssign, evalFlags)
+	case schema.OpcodeBitClearAssign:
+		return g.op_binary(buf, node, TokenBitClearAssign, evalFlags)
+	case schema.OpcodeLeftShiftAssign:
+		return g.op_binary(buf, node, TokenShiftLeftAssign, evalFlags)
+	case schema.OpcodeRightShiftAssign:
+		return g.op_binary(buf, node, TokenShiftRightAssign, evalFlags)
+	case schema.OpcodeBitAnd:
+		return g.op_binary(buf, node, TokenBitAnd, evalFlags)
+	case schema.OpcodeBitOr:
+		return g.op_binary(buf, node, TokenBitOr, evalFlags)
+	case schema.OpcodeBitXor:
+		return g.op_binary(buf, node, TokenBitXor, evalFlags)
+	case schema.OpcodeBitClear:
+		return g.op_binary(buf, node, TokenBitClear, evalFlags)
+	case schema.OpcodeLeftShift:
+		return g.op_binary(buf, node, TokenShiftLeft, evalFlags)
+	case schema.OpcodeRightShift:
+		return g.op_binary(buf, node, TokenShiftRight, evalFlags)
 	}
 
 	return fmt.Errorf("invalid opcode on node with opcode of %s", opcode)
@@ -108,6 +178,21 @@ func (g *Generator) EvalBinary(buf *bytes.Buffer, opcode schema.Opcode, node *pr
 
 func (g *Generator) EvalUnary(buf *bytes.Buffer, opcode schema.Opcode, node *program.UnaryNode, evalFlags EvalFlags) error {
 	switch opcode {
+	case schema.OpcodeNot:
+		return g.op_unaryPrefix(buf, node, TokenNot, evalFlags)
+	case schema.OpcodeDefer:
+		return g.op_defer(buf, node, evalFlags)
+	case schema.OpcodeGoRoutine:
+		return g.op_goRoutine(buf, node, evalFlags)
+
+	case schema.OpcodeInc:
+		return g.op_unarySuffix(buf, node, TokenIncrement, evalFlags)
+	case schema.OpcodeDec:
+		return g.op_unarySuffix(buf, node, TokenDecrement, evalFlags)
+	case schema.OpcodeAddrOf:
+		return g.op_unaryPrefix(buf, node, TokenBitAnd, evalFlags)
+	case schema.OpcodeDeref:
+		return g.op_unaryPrefix(buf, node, TokenStar, evalFlags)
 	}
 
 	return fmt.Errorf("invalid opcode on node with opcode of %s", opcode)
@@ -247,8 +332,231 @@ func EvalType(t *program.TypeDef) (any, error) {
 		ptr.Init(unionTable.Bytes, unionTable.Pos)
 
 		return ptr, nil
+	case program.TypeMapType:
+		ptr := new(program.MapType)
+		ptr.Init(unionTable.Bytes, unionTable.Pos)
+
+		return ptr, nil
+	case program.TypeArrayType:
+		ptr := new(program.ArrayType)
+		ptr.Init(unionTable.Bytes, unionTable.Pos)
+
+		return ptr, nil
+	case program.TypeStructureType:
+		ptr := new(program.StructureType)
+		ptr.Init(unionTable.Bytes, unionTable.Pos)
+
+		return ptr, nil
 
 	default:
 		return nil, fmt.Errorf("unknown type kind: %d", t.TypeType())
 	}
+}
+
+func (g *Generator) evalType(buf *bytes.Buffer, t *program.TypeDef) error {
+	if t.TypeType() == program.TypeNONE {
+		name, ok := g.LookUpStr(t.Base())
+		if !ok {
+			return fmt.Errorf("string with id %d is undefined", t.Base())
+		}
+
+		buf.Write(name)
+		return nil
+	}
+
+	v, err := EvalType(t)
+	if err != nil {
+		return err
+	}
+
+	switch ty := v.(type) {
+	case *program.PointerType:
+		buf.Write(TokenStar.Bytes())
+		elem, ok := g.LookUpType(ty.Elem())
+		if !ok {
+			return fmt.Errorf("type with id %d is undefined", ty.Elem())
+		}
+
+		return g.evalType(buf, elem)
+
+	case *program.MapType:
+		buf.Write(TokenMap.Bytes())
+		buf.Write(TokenBracketLeft.Bytes())
+
+		key, ok := g.LookUpType(ty.Key())
+		if !ok {
+			return fmt.Errorf("type with id %d is undefined", ty.Key())
+		}
+
+		if err := g.evalType(buf, key); err != nil {
+			return err
+		}
+
+		buf.Write(TokenBracketRight.Bytes())
+
+		value, ok := g.LookUpType(ty.Value())
+		if !ok {
+			return fmt.Errorf("type with id %d is undefined", ty.Value())
+		}
+
+		return g.evalType(buf, value)
+
+	case *program.ArrayType:
+		buf.Write(TokenBracketLeft.Bytes())
+		buf.WriteString(strconv.Itoa(int(ty.Size())))
+		buf.Write(TokenBracketRight.Bytes())
+
+		elem, ok := g.LookUpType(ty.Elem())
+		if !ok {
+			return fmt.Errorf("type with id %d is undefined", ty.Elem())
+		}
+
+		return g.evalType(buf, elem)
+
+	case *program.StructureType:
+		name, ok := g.LookUpStr(t.Base())
+		if !ok {
+			return fmt.Errorf("string with id %d is undefined", t.Base())
+		}
+		buf.Write(name)
+		buf.Write(TokenSpace.Bytes())
+
+		buf.Write(TokenBraceLeft.Bytes())
+		buf.Write(TokenNewLine.Bytes())
+
+		for i := 0; i < ty.FieldsLength(); i++ {
+			buf.Write(TokenTab.Bytes())
+
+			var f program.StructureField
+			ty.Fields(&f, i)
+
+			name, ok := g.LookUpStr(f.Name())
+			if !ok {
+				return fmt.Errorf("string with id %d is undefined", f.Name())
+			}
+			buf.Write(name)
+			buf.Write(TokenSpace.Bytes())
+
+			// Look for the field definition
+			def, ok := g.LookUpType(f.Type())
+			if !ok {
+				return fmt.Errorf("type with id %d is undefined", f.Type())
+			}
+
+			if def.TypeType() == program.TypeFunctionType {
+				buf.Write(TokenFunc.Bytes())
+			}
+
+			// Evaluate and write the field definition to the buffer
+			if err := g.evalType(buf, def); err != nil {
+				return err
+			}
+
+			buf.Write(TokenNewLine.Bytes())
+		}
+
+		for i := 0; i < ty.DefsLength(); i++ {
+			buf.Write(TokenTab.Bytes())
+
+			var defId = ty.Defs(i)
+
+			// Look for the method defintion
+			def, ok := g.LookUpType(defId)
+			if !ok {
+				return fmt.Errorf("type with id %d is undefined", defId)
+			}
+
+			// Write the function name to the buffer
+			funcName, ok := g.LookUpStr(def.Id())
+			if !ok {
+				return fmt.Errorf("string with id %d is undefined", def.Id())
+			}
+			buf.Write(funcName)
+
+			// Evaluate and write the type definition to the buffer
+			if err := g.evalType(buf, def); err != nil {
+				return err
+			}
+
+			buf.Write(TokenNewLine.Bytes())
+		}
+
+		buf.Write(TokenBraceRight.Bytes())
+		return nil
+
+	case *program.FunctionType:
+		// Parameters
+		buf.Write(TokenParenLeft.Bytes())
+		if ty.ParamsLength() > 0 {
+			err := g.writePairList(buf, ty.ParamsLength(), ty.Params)
+			if err != nil {
+				return err
+			}
+		}
+		buf.Write(TokenParenRight.Bytes())
+
+		// Return values
+		if ty.ResultsLength() > 0 {
+			buf.Write(TokenSpace.Bytes())
+
+			// look at first result to decide parentheses
+			var first program.Pair
+			ty.Results(&first, 0)
+
+			name, ok := g.LookUpStr(first.Key())
+			if !ok {
+				return fmt.Errorf("string with id %d is undefined", first.Key())
+			}
+
+			needParens := ty.ResultsLength() > 1 || len(name) > 0
+			if needParens {
+				buf.Write(TokenParenLeft.Bytes())
+			}
+
+			err := g.writePairList(buf, ty.ResultsLength(), ty.Results)
+			if err != nil {
+				return err
+			}
+
+			if needParens {
+				buf.Write(TokenParenRight.Bytes())
+			}
+		}
+		return nil
+
+	default:
+		return fmt.Errorf("unsupported type: %T", v)
+	}
+}
+
+func (g *Generator) writePairList(buf *bytes.Buffer, listLength int, getPair func(obj *program.Pair, j int) bool) error {
+	for i := range listLength {
+		if i > 0 {
+			buf.Write(TokenComma.Bytes())
+			buf.Write(TokenSpace.Bytes())
+		}
+
+		var p program.Pair
+		getPair(&p, i)
+
+		name, ok := g.LookUpStr(p.Key())
+		if !ok {
+			return fmt.Errorf("string with id %d is undefined", p.Key())
+		}
+
+		if len(name) > 0 {
+			buf.Write(name)
+			buf.Write(TokenSpace.Bytes())
+		}
+
+		def, ok := g.LookUpType(p.Value())
+		if !ok {
+			return fmt.Errorf("type with id %d is undefined", p.Value())
+		}
+
+		if err := g.evalType(buf, def); err != nil {
+			return err
+		}
+	}
+	return nil
 }

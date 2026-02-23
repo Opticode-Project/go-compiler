@@ -141,45 +141,10 @@ func (g *Generator) op_func(buf *bytes.Buffer, node *program.IndexedNode, flags 
 
 	// Body
 	buf.Write(TokenSpace.Bytes())
-	buf.Write(TokenBracesLeft.Bytes())
+	buf.Write(TokenBraceLeft.Bytes())
 	buf.Write(TokenNewLine.Bytes())
 	buf.Write(body.Bytes())
-	buf.Write(TokenBracesRight.Bytes())
+	buf.Write(TokenBraceRight.Bytes())
 
-	return nil
-}
-
-func (g *Generator) writePairList(buf *bytes.Buffer, listLength int, getPair func(obj *program.Pair, j int) bool) error {
-	for i := range listLength {
-		var p program.Pair
-		getPair(&p, i)
-
-		name, ok := g.LookUpStr(p.Key())
-		if !ok {
-			return fmt.Errorf("string with id %d is undefined", p.Key())
-		}
-
-		tdef, ok := g.LookUpType(p.Value())
-		if !ok {
-			return fmt.Errorf("type with id %d is undefined", p.Value())
-		}
-
-		typeStr, ok := g.LookUpStr(tdef.Id())
-		if !ok {
-			return fmt.Errorf("string with id %d is undefined", tdef.Id())
-		}
-
-		if i > 0 {
-			buf.Write(TokenComma.Bytes())
-			buf.Write(TokenSpace.Bytes())
-		}
-
-		if len(name) > 0 {
-			buf.Write(name)
-			buf.Write(TokenSpace.Bytes())
-		}
-
-		buf.Write(typeStr)
-	}
 	return nil
 }
