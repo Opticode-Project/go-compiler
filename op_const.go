@@ -43,9 +43,6 @@ func (g *Generator) op_const(buf *bytes.Buffer, node *program.IndexedNode, flags
 
 		if multiline {
 			buf.Write(TokenNewLine.Bytes())
-			buf.Write(TokenTab.Bytes())
-		} else if i > 0 {
-			buf.Write(TokenSpace.Bytes())
 		}
 
 		if err := g.evalNode(buf, target, separatorFlag); err != nil {
