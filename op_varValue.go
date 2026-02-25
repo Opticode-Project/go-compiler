@@ -7,15 +7,14 @@ import (
 	program "github.com/Opticode-Project/go-compiler/program"
 )
 
-var test = 10
-
+// var anotherthing int8 = 4
 func (g *Generator) op_varValue(buf *bytes.Buffer, node *program.BinaryNode, flags EvalFlags) error {
 	// Get the left and right values
 	left := node.Left(nil)
 	right := node.Right(nil)
 
 	if left == nil || right == nil {
-		return fmt.Errorf("assignment operands cannot be nil")
+		return fmt.Errorf("var value operands cannot be nil")
 	}
 
 	// indentation
@@ -25,19 +24,22 @@ func (g *Generator) op_varValue(buf *bytes.Buffer, node *program.BinaryNode, fla
 		buf.Write(TokenSpace.Bytes())
 	}
 
+	// Evaluate left node
 	leftVal, ok := g.LookUpStr(uint32(left.Value()))
 	if !ok {
 		return fmt.Errorf("string with id %d is undefined", left.Value())
 	}
 
 	buf.Write(leftVal)
+	buf.Write(TokenSpace.Bytes())
 
+	// Evaluate and write left value's type to the buffer
 	def, ok := g.LookUpType(left.Type())
 	if !ok {
 		return fmt.Errorf("type with id %d is undefined", left.Type())
 	}
 
-	buf.Write(TokenSpace.Bytes())
+	// Evaluate left value's type
 	if err := g.evalType(buf, def); err != nil {
 		return err
 	}
@@ -46,5 +48,6 @@ func (g *Generator) op_varValue(buf *bytes.Buffer, node *program.BinaryNode, fla
 	buf.Write(TokenEqual.Bytes())
 	buf.Write(TokenSpace.Bytes())
 
+	// Evaluate right node
 	return g.evalValue(buf, right, false)
 }

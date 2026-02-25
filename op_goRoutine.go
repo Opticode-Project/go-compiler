@@ -8,6 +8,7 @@ import (
 	program "github.com/Opticode-Project/go-compiler/program"
 )
 
+// go worker()
 func (g *Generator) op_goRoutine(buf *bytes.Buffer, node *program.UnaryNode, flags EvalFlags) error {
 	value := node.Value(nil)
 
@@ -15,6 +16,7 @@ func (g *Generator) op_goRoutine(buf *bytes.Buffer, node *program.UnaryNode, fla
 		return fmt.Errorf("go routine value cannot be nil")
 	}
 
+	// Checks whether the value is valid or not
 	nodeValue := g.GetNode(value.Value())
 	if nodeValue == nil {
 		return fmt.Errorf("attempt to access undefined node: %d", value.Value())
@@ -27,8 +29,7 @@ func (g *Generator) op_goRoutine(buf *bytes.Buffer, node *program.UnaryNode, fla
 
 	buf.Write(TokenGo.Bytes())
 	buf.Write(TokenSpace.Bytes())
-	if err := g.evalNode(buf, nodeValue, flags); err != nil {
-		return err
-	}
-	return nil
+
+	// Evaluates the call node and writes to the buffer
+	return g.evalNode(buf, nodeValue, flags)
 }

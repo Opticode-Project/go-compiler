@@ -8,17 +8,20 @@ import (
 	program "github.com/Opticode-Project/go-compiler/program"
 )
 
+// const something uint8 = 2
 func (g *Generator) op_constValue(buf *bytes.Buffer, node *program.BinaryNode, flags EvalFlags) error {
 	// Get the left and right values
 	left := node.Left(nil)
 	right := node.Right(nil)
 
 	if left == nil || right == nil {
-		return fmt.Errorf("assignment operands cannot be nil")
+		return fmt.Errorf("const value operands cannot be nil")
 	}
 
 	// const semantic check
 	if right.Flags()&uint32(schema.ValueFlagPointer) != 0 {
+
+		// Checks whether the right node's value is valid or not
 		target := g.GetNode(right.Value())
 		if target == nil {
 			return fmt.Errorf("undefined node: %d", right.Value())
@@ -36,19 +39,21 @@ func (g *Generator) op_constValue(buf *bytes.Buffer, node *program.BinaryNode, f
 		buf.Write(TokenSpace.Bytes())
 	}
 
+	// Evaluate left node
 	leftVal, ok := g.LookUpStr(uint32(left.Value()))
 	if !ok {
 		return fmt.Errorf("string with id %d is undefined", left.Value())
 	}
 
 	buf.Write(leftVal)
+	buf.Write(TokenSpace.Bytes())
 
+	// Evaluate and write left value's type to the buffer
 	def, ok := g.LookUpType(left.Type())
 	if !ok {
 		return fmt.Errorf("type with id %d is undefined", left.Type())
 	}
 
-	buf.Write(TokenSpace.Bytes())
 	if err := g.evalType(buf, def); err != nil {
 		return err
 	}
@@ -57,5 +62,6 @@ func (g *Generator) op_constValue(buf *bytes.Buffer, node *program.BinaryNode, f
 	buf.Write(TokenEqual.Bytes())
 	buf.Write(TokenSpace.Bytes())
 
+	// Evaluate right node
 	return g.evalValue(buf, right, true)
 }

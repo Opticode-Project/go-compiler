@@ -7,6 +7,7 @@ import (
 	program "github.com/Opticode-Project/go-compiler/program"
 )
 
+// import http "net/http"
 func (g *Generator) op_importValue(buf *bytes.Buffer, node *program.BinaryNode, flags EvalFlags) error {
 	left := node.Left(nil)
 	right := node.Right(nil)
@@ -27,11 +28,11 @@ func (g *Generator) op_importValue(buf *bytes.Buffer, node *program.BinaryNode, 
 	if !ok {
 		return fmt.Errorf("string with id %d is undefined", left.Value())
 	}
+
 	buf.Write(leftValue)
 
-	// write seperator
 	if len(leftValue) > 0 {
-		buf.Write(TokenSpace.Bytes())
+		buf.Write(TokenSpace.Bytes()) // write seperator
 	}
 
 	// quoted package path

@@ -14,6 +14,7 @@ const (
 	resultsGrowthModifer = 16
 )
 
+// func main() {}
 func (g *Generator) op_func(buf *bytes.Buffer, node *program.IndexedNode, flags EvalFlags) error {
 	length := node.FieldsLength()
 
@@ -64,6 +65,7 @@ func (g *Generator) op_func(buf *bytes.Buffer, node *program.IndexedNode, flags 
 			return fmt.Errorf("func node fields can only be pointers")
 		}
 
+		// Checks whether the field value's node is valid or not
 		target := g.GetNode(field.Value())
 		if target == nil {
 			return fmt.Errorf("attempt to access undefined node: %d", field.Value())
@@ -76,12 +78,15 @@ func (g *Generator) op_func(buf *bytes.Buffer, node *program.IndexedNode, flags 
 				params.Write(TokenSpace.Bytes())
 			}
 
+			// Evaluates the parameters
 			if err := g.evalNode(&params, target, 0); err != nil {
 				return err
 			}
 
 		case field.Flags()&uint32(schema.ValueFlagFuncBody) != 0:
 			body.Write(TokenTab.Bytes())
+
+			// Evaluates the body of the function
 			if err := g.evalNode(&body, target, 0); err != nil {
 				return err
 			}

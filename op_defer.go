@@ -8,6 +8,7 @@ import (
 	program "github.com/Opticode-Project/go-compiler/program"
 )
 
+// defer fmt.Println("Hello, world!")
 func (g *Generator) op_defer(buf *bytes.Buffer, node *program.UnaryNode, flags EvalFlags) error {
 	value := node.Value(nil)
 
@@ -15,6 +16,7 @@ func (g *Generator) op_defer(buf *bytes.Buffer, node *program.UnaryNode, flags E
 		return fmt.Errorf("defer value cannot be nil")
 	}
 
+	// Checks whether the node value is valid or not
 	nodeValue := g.GetNode(value.Value())
 	if nodeValue == nil {
 		return fmt.Errorf("attempt to access undefined node: %d", value.Value())
@@ -27,8 +29,7 @@ func (g *Generator) op_defer(buf *bytes.Buffer, node *program.UnaryNode, flags E
 
 	buf.Write(TokenDefer.Bytes())
 	buf.Write(TokenSpace.Bytes())
-	if err := g.evalNode(buf, nodeValue, flags); err != nil {
-		return err
-	}
-	return nil
+
+	// Evaluates the call node and writes to the buffer
+	return g.evalNode(buf, nodeValue, flags)
 }

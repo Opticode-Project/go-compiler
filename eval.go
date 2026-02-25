@@ -19,8 +19,41 @@ const (
 
 func (g *Generator) Eval(node *program.Node, evalFlags EvalFlags) ([]byte, error) {
 	var buf bytes.Buffer
+
+	// Evaluates a node and writes to the buffer
 	err := g.evalNode(&buf, node, evalFlags)
+
 	return buf.Bytes(), err
+}
+
+func EvalNode(node *program.Node) (any, error) {
+	var unionTable fb.Table
+	if !node.Node(&unionTable) {
+		return nil, fmt.Errorf("failed to access union of node: %d", node.Id())
+	}
+
+	switch node.NodeType() {
+	case program.NodeUnionIndexedNode:
+		n := new(program.IndexedNode)
+		n.Init(unionTable.Bytes, unionTable.Pos)
+
+		return n, nil
+
+	case program.NodeUnionBinaryNode:
+		n := new(program.BinaryNode)
+		n.Init(unionTable.Bytes, unionTable.Pos)
+
+		return n, nil
+
+	case program.NodeUnionUnaryNode:
+		n := new(program.UnaryNode)
+		n.Init(unionTable.Bytes, unionTable.Pos)
+
+		return n, nil
+
+	default:
+		return nil, fmt.Errorf("unknown node union type %d", node.NodeType())
+	}
 }
 
 func (g *Generator) evalNode(buf *bytes.Buffer, node *program.Node, evalFlags EvalFlags) error {
@@ -28,46 +61,34 @@ func (g *Generator) evalNode(buf *bytes.Buffer, node *program.Node, evalFlags Ev
 		return fmt.Errorf("node is nil")
 	}
 
-	var unionTable fb.Table
-	if !node.Node(&unionTable) {
-		return fmt.Errorf("failed to access union of node: %d", node.Id())
+	opcode := schema.Opcode(node.Opcode())
+	if node.NodeType() == program.NodeUnionNONE {
+		return fmt.Errorf("node %d has no union payload", node.Id())
 	}
 
-	opcode := schema.Opcode(node.Opcode())
+	v, err := EvalNode(node)
+	if err != nil {
+		return err
+	}
 
-	switch node.NodeType() {
-	case program.NodeUnionIndexedNode:
-		n := new(program.IndexedNode)
-		n.Init(unionTable.Bytes, unionTable.Pos)
-
+	switch n := v.(type) {
+	case *program.IndexedNode:
 		err := g.EvalIndexed(buf, opcode, n, evalFlags)
 		if err != nil {
 			return err
 		}
 
-	case program.NodeUnionBinaryNode:
-		n := new(program.BinaryNode)
-		n.Init(unionTable.Bytes, unionTable.Pos)
-
+	case *program.BinaryNode:
 		err := g.EvalBinary(buf, opcode, n, evalFlags)
 		if err != nil {
 			return err
 		}
 
-	case program.NodeUnionUnaryNode:
-		n := new(program.UnaryNode)
-		n.Init(unionTable.Bytes, unionTable.Pos)
-
+	case *program.UnaryNode:
 		err := g.EvalUnary(buf, opcode, n, evalFlags)
 		if err != nil {
 			return err
 		}
-
-	case program.NodeUnionNONE:
-		return fmt.Errorf("node %d has no union payload", node.Id())
-
-	default:
-		return fmt.Errorf("unknown node union type %d", node.NodeType())
 	}
 
 	return nil
@@ -199,23 +220,18 @@ func (g *Generator) EvalUnary(buf *bytes.Buffer, opcode schema.Opcode, node *pro
 }
 
 func isConstOperator(op schema.Opcode) bool {
+	switch {
 	// arithmetic
-	if op >= schema.OpcodeAdd && op <= schema.OpcodeMod {
-		return true
-	}
+	case op >= schema.OpcodeAdd && op <= schema.OpcodeMod:
 
 	// comparisons
-	if op >= schema.OpcodeEqual && op <= schema.OpcodeGreaterEqual {
-		return true
-	}
+	case op >= schema.OpcodeEqual && op <= schema.OpcodeGreaterEqual:
 
 	// logical
-	if op >= schema.OpcodeAnd && op <= schema.OpcodeNot {
-		return true
-	}
+	case op >= schema.OpcodeAnd && op <= schema.OpcodeNot:
 
 	// bitwise
-	if op >= schema.OpcodeBitAnd && op <= schema.OpcodeRightShift {
+	case op >= schema.OpcodeBitAnd && op <= schema.OpcodeRightShift:
 		return true
 	}
 
@@ -253,52 +269,56 @@ func (g *Generator) isConstantExpression(node *program.Node) bool {
 		return false
 	}
 
-	var unionTable fb.Table
-	if !node.Node(&unionTable) {
+	v, err := EvalNode(node)
+	if err != nil {
 		return false
 	}
 
-	switch node.NodeType() {
-	case program.NodeUnionUnaryNode:
-		n := new(program.UnaryNode)
-		n.Init(unionTable.Bytes, unionTable.Pos)
+	switch n := v.(type) {
+	case *program.UnaryNode:
+		value := n.Value(nil)
 
-		return g.isConstValue(n.Value(nil))
+		return g.isConstValue(value)
 
-	case program.NodeUnionBinaryNode:
-		n := new(program.BinaryNode)
-		n.Init(unionTable.Bytes, unionTable.Pos)
+	case *program.BinaryNode:
+		left := n.Left(nil)
+		right := n.Right(nil)
 
-		return g.isConstValue(n.Left(nil)) &&
-			g.isConstValue(n.Right(nil))
+		return g.isConstValue(left) && g.isConstValue(right)
 
 	default:
 		return false
 	}
 }
 
+// Evaluates a pointer of a node value and writes the result to the buffer
 func (g *Generator) evalValue(buf *bytes.Buffer, nodeValue *program.NodeValue, isConst bool) error {
 	if nodeValue == nil {
 		return fmt.Errorf("node value is null")
 	}
 
+	// if value is a pointer
 	if nodeValue.Flags()&uint32(schema.ValueFlagPointer) != 0 {
 		if isConst {
 			return fmt.Errorf("const value cannot reference runtime expression")
 		}
 
+		// Checks whether the node value is valid or not
 		node := g.GetNode(nodeValue.Value())
 		if node == nil {
 			return fmt.Errorf("attempt to access undefined node: %d", nodeValue.Value())
 		}
 
+		// Evaluates the node and writes to the buffer
 		err := g.evalNode(buf, node, 0)
 		if err != nil {
 			return err
 		}
+
 		return nil
 	}
 
+	// literal value
 	value, ok := g.LookUpStr(uint32(nodeValue.Value()))
 	if !ok {
 		return fmt.Errorf("string with id %d is undefined", nodeValue.Value())
@@ -308,10 +328,11 @@ func (g *Generator) evalValue(buf *bytes.Buffer, nodeValue *program.NodeValue, i
 		buf.Write(TokenQuotation.Bytes())
 		buf.Write(value)
 		buf.Write(TokenQuotation.Bytes())
-	} else {
-		buf.Write(value)
+
+		return nil
 	}
 
+	buf.Write(value)
 	return nil
 }
 
@@ -354,6 +375,7 @@ func EvalType(t *program.TypeDef) (any, error) {
 }
 
 func (g *Generator) evalType(buf *bytes.Buffer, t *program.TypeDef) error {
+	// Evaluate base types, such as uint8, string, etc
 	if t.TypeType() == program.TypeNONE {
 		name, ok := g.LookUpStr(t.Base())
 		if !ok {
@@ -364,14 +386,17 @@ func (g *Generator) evalType(buf *bytes.Buffer, t *program.TypeDef) error {
 		return nil
 	}
 
+	// Gets the proper type out of the type definition
 	v, err := EvalType(t)
 	if err != nil {
 		return err
 	}
 
 	switch ty := v.(type) {
+	// *ptr
 	case *program.PointerType:
 		buf.Write(TokenStar.Bytes())
+
 		elem, ok := g.LookUpType(ty.Elem())
 		if !ok {
 			return fmt.Errorf("type with id %d is undefined", ty.Elem())
@@ -379,6 +404,7 @@ func (g *Generator) evalType(buf *bytes.Buffer, t *program.TypeDef) error {
 
 		return g.evalType(buf, elem)
 
+	// map[string]uint8
 	case *program.MapType:
 		buf.Write(TokenMap.Bytes())
 		buf.Write(TokenBracketLeft.Bytes())
@@ -401,6 +427,7 @@ func (g *Generator) evalType(buf *bytes.Buffer, t *program.TypeDef) error {
 
 		return g.evalType(buf, value)
 
+	// [4]int
 	case *program.ArrayType:
 		buf.Write(TokenBracketLeft.Bytes())
 		buf.WriteString(strconv.Itoa(int(ty.Size())))
@@ -413,7 +440,9 @@ func (g *Generator) evalType(buf *bytes.Buffer, t *program.TypeDef) error {
 
 		return g.evalType(buf, elem)
 
+	// type Name struct {}
 	case *program.StructureType:
+		// Look for the name of the struct/interface
 		name, ok := g.LookUpStr(t.Base())
 		if !ok {
 			return fmt.Errorf("string with id %d is undefined", t.Base())
@@ -424,12 +453,14 @@ func (g *Generator) evalType(buf *bytes.Buffer, t *program.TypeDef) error {
 		buf.Write(TokenBraceLeft.Bytes())
 		buf.Write(TokenNewLine.Bytes())
 
+		// Struct fields
 		for i := 0; i < ty.FieldsLength(); i++ {
 			buf.Write(TokenTab.Bytes())
 
 			var f program.StructureField
 			ty.Fields(&f, i)
 
+			// Looks for the name of the field
 			name, ok := g.LookUpStr(f.Name())
 			if !ok {
 				return fmt.Errorf("string with id %d is undefined", f.Name())
@@ -437,7 +468,7 @@ func (g *Generator) evalType(buf *bytes.Buffer, t *program.TypeDef) error {
 			buf.Write(name)
 			buf.Write(TokenSpace.Bytes())
 
-			// Look for the field definition
+			// Looks for the field definition
 			def, ok := g.LookUpType(f.Type())
 			if !ok {
 				return fmt.Errorf("type with id %d is undefined", f.Type())
@@ -455,6 +486,7 @@ func (g *Generator) evalType(buf *bytes.Buffer, t *program.TypeDef) error {
 			buf.Write(TokenNewLine.Bytes())
 		}
 
+		// Interface functions
 		for i := 0; i < ty.DefsLength(); i++ {
 			buf.Write(TokenTab.Bytes())
 
@@ -484,11 +516,13 @@ func (g *Generator) evalType(buf *bytes.Buffer, t *program.TypeDef) error {
 		buf.Write(TokenBraceRight.Bytes())
 		return nil
 
+	// (a uint8, b int32) uint32
 	case *program.FunctionType:
 		// Parameters
 		buf.Write(TokenParenLeft.Bytes())
 		if ty.ParamsLength() > 0 {
 			err := g.writePairList(buf, ty.ParamsLength(), ty.Params)
+
 			if err != nil {
 				return err
 			}
@@ -499,15 +533,19 @@ func (g *Generator) evalType(buf *bytes.Buffer, t *program.TypeDef) error {
 		if ty.ResultsLength() > 0 {
 			buf.Write(TokenSpace.Bytes())
 
-			// look at first result to decide parentheses
+			// look at first result to decide whether parentheses are needed
 			var first program.Pair
 			ty.Results(&first, 0)
 
+			// The key of the first result,
+			// if empty then result would be for example: "uint8"
+			// otherwise: "(key uint8)"
 			name, ok := g.LookUpStr(first.Key())
 			if !ok {
 				return fmt.Errorf("string with id %d is undefined", first.Key())
 			}
 
+			// Checks if there is more than one result or the first result has a key
 			needParens := ty.ResultsLength() > 1 || len(name) > 0
 			if needParens {
 				buf.Write(TokenParenLeft.Bytes())
@@ -549,6 +587,7 @@ func (g *Generator) writePairList(buf *bytes.Buffer, listLength int, getPair fun
 			buf.Write(TokenSpace.Bytes())
 		}
 
+		// Evaluate and write the field definition to the buffer
 		def, ok := g.LookUpType(p.Value())
 		if !ok {
 			return fmt.Errorf("type with id %d is undefined", p.Value())

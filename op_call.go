@@ -7,6 +7,7 @@ import (
 	program "github.com/Opticode-Project/go-compiler/program"
 )
 
+// fmt.Println("hello, world!")
 func (g *Generator) op_call(buf *bytes.Buffer, node *program.IndexedNode, flags EvalFlags) error {
 	length := node.FieldsLength()
 
@@ -18,6 +19,7 @@ func (g *Generator) op_call(buf *bytes.Buffer, node *program.IndexedNode, flags 
 
 	buf.Write(TokenParenLeft.Bytes())
 
+	// Parameters
 	for i := range length {
 		var field program.NodeValue
 		node.Fields(&field, i)

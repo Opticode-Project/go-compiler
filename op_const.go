@@ -8,6 +8,7 @@ import (
 	program "github.com/Opticode-Project/go-compiler/program"
 )
 
+// const something uint8 = 2
 func (g *Generator) op_const(buf *bytes.Buffer, node *program.IndexedNode, flags EvalFlags) error {
 	length := node.FieldsLength()
 	if length == 0 {
@@ -36,6 +37,7 @@ func (g *Generator) op_const(buf *bytes.Buffer, node *program.IndexedNode, flags
 			return fmt.Errorf("const node fields must be pointers")
 		}
 
+		// Checks whether the field value's node is valid or not
 		target := g.GetNode(field.Value())
 		if target == nil {
 			return fmt.Errorf("attempt to access undefined node: %d", field.Value())
@@ -45,6 +47,7 @@ func (g *Generator) op_const(buf *bytes.Buffer, node *program.IndexedNode, flags
 			buf.Write(TokenNewLine.Bytes())
 		}
 
+		// Evaluate constant node
 		if err := g.evalNode(buf, target, separatorFlag); err != nil {
 			return err
 		}

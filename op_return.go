@@ -8,6 +8,7 @@ import (
 	program "github.com/Opticode-Project/go-compiler/program"
 )
 
+// return a, b
 func (g *Generator) op_return(buf *bytes.Buffer, node *program.IndexedNode, flags EvalFlags) error {
 	length := node.FieldsLength()
 
@@ -19,9 +20,10 @@ func (g *Generator) op_return(buf *bytes.Buffer, node *program.IndexedNode, flag
 		node.Fields(&field, i)
 
 		if field.Flags()&uint32(schema.ValueFlagPointer) == 0 {
-			return fmt.Errorf("func node fields can only be pointers")
+			return fmt.Errorf("return node fields can only be pointers")
 		}
 
+		// Checks whether the field value's node is valid or not
 		target := g.GetNode(field.Value())
 		if target == nil {
 			return fmt.Errorf("attempt to access undefined node: %d", field.Value())

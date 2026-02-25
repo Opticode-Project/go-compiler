@@ -7,6 +7,7 @@ import (
 	program "github.com/Opticode-Project/go-compiler/program"
 )
 
+// type Struct struct { ... }
 func (g *Generator) op_type(buf *bytes.Buffer, node *program.IndexedNode, flags EvalFlags) error {
 	var field program.NodeValue
 	node.Fields(&field, 0)
@@ -29,7 +30,7 @@ func (g *Generator) op_type(buf *bytes.Buffer, node *program.IndexedNode, flags 
 		return fmt.Errorf("type with id %d is undefined", field.Type())
 	}
 
-	// Check if the field is a structure or a function type
+	// Check whether the field is either a structure or a function type
 	_type := def.TypeType()
 	if _type != program.TypeStructureType && _type != program.TypeFunctionType {
 		return fmt.Errorf("the operand must be either a structure or a function but got: %d", _type)
@@ -39,7 +40,7 @@ func (g *Generator) op_type(buf *bytes.Buffer, node *program.IndexedNode, flags 
 		buf.Write(TokenFunc.Bytes())
 	}
 
-	// Get the type and write it to the buffer
+	// Evaluates the type definition and writes to the buffer
 	if err := g.evalType(buf, def); err != nil {
 		return err
 	}
