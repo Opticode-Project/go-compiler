@@ -6,6 +6,7 @@ import (
 
 	schema "github.com/Opticode-Project/go-compiler/golang"
 	program "github.com/Opticode-Project/go-compiler/program"
+	fb "github.com/google/flatbuffers/go"
 )
 
 const (
@@ -20,7 +21,7 @@ func (g *Generator) op_func(buf *bytes.Buffer, node *program.IndexedNode, flags 
 
 	var (
 		funcId   []byte
-		funcType *program.FunctionType
+		funcType *schema.GoType
 	)
 
 	var (
@@ -47,15 +48,13 @@ func (g *Generator) op_func(buf *bytes.Buffer, node *program.IndexedNode, flags 
 
 			funcId = funcName
 
-			v, err := EvalType(def)
-			if err != nil {
-				return err
+			var unionTable fb.Table
+			if !def.Type(&unionTable) {
+				return fmt.Errorf("failed to access union of type: %d", def.Id())
 			}
 
-			ft, ok := v.(*program.FunctionType)
-			if !ok {
-				return fmt.Errorf("expected *program.FuncType but got %T", v)
-			}
+			ft := new(schema.GoType)
+			ft.Init(unionTable.Bytes, unionTable.Pos)
 
 			funcType = ft
 			continue
@@ -121,8 +120,8 @@ func (g *Generator) op_func(buf *bytes.Buffer, node *program.IndexedNode, flags 
 		buf.Write(TokenSpace.Bytes())
 
 		// look at first result to decide parentheses
-		var first program.Pair
-		funcType.Results(&first, 0)
+		//var first program.Pair
+		/*funcType.Results(0)
 
 		name, ok := g.LookUpStr(first.Key())
 		if !ok {
@@ -141,7 +140,7 @@ func (g *Generator) op_func(buf *bytes.Buffer, node *program.IndexedNode, flags 
 
 		if needParens {
 			buf.Write(TokenParenRight.Bytes())
-		}
+		}*/
 	}
 
 	// Body

@@ -214,6 +214,9 @@ func (g *Generator) EvalUnary(buf *bytes.Buffer, opcode schema.Opcode, node *pro
 		return g.op_unaryPrefix(buf, node, TokenBitAnd, evalFlags)
 	case schema.OpcodeDeref:
 		return g.op_unaryPrefix(buf, node, TokenStar, evalFlags)
+
+	case schema.OpcodeReceive:
+		return g.op_unaryPrefix(buf, node, TokenArrowLeft, evalFlags)
 	}
 
 	return fmt.Errorf("invalid opcode on node with opcode of %s", opcode)
@@ -336,65 +339,24 @@ func (g *Generator) evalValue(buf *bytes.Buffer, nodeValue *program.NodeValue, i
 	return nil
 }
 
-func EvalType(t *program.TypeDef) (any, error) {
-	var unionTable fb.Table
-	if !t.Type(&unionTable) {
-		return nil, fmt.Errorf("failed to access union of type: %d", t.Id())
-	}
-
-	switch t.TypeType() {
-	case program.TypeFunctionType:
-		ptr := new(program.FunctionType)
-		ptr.Init(unionTable.Bytes, unionTable.Pos)
-
-		return ptr, nil
-	case program.TypePointerType:
-		ptr := new(program.PointerType)
-		ptr.Init(unionTable.Bytes, unionTable.Pos)
-
-		return ptr, nil
-	case program.TypeMapType:
-		ptr := new(program.MapType)
-		ptr.Init(unionTable.Bytes, unionTable.Pos)
-
-		return ptr, nil
-	case program.TypeArrayType:
-		ptr := new(program.ArrayType)
-		ptr.Init(unionTable.Bytes, unionTable.Pos)
-
-		return ptr, nil
-	case program.TypeStructureType:
-		ptr := new(program.StructureType)
-		ptr.Init(unionTable.Bytes, unionTable.Pos)
-
-		return ptr, nil
-
-	default:
-		return nil, fmt.Errorf("unknown type kind: %d", t.TypeType())
-	}
-}
-
 func (g *Generator) evalType(buf *bytes.Buffer, t *program.TypeDef) error {
-	// Evaluate base types, such as uint8, string, etc
-	if t.TypeType() == program.TypeNONE {
-		name, ok := g.LookUpStr(t.Base())
-		if !ok {
-			return fmt.Errorf("string with id %d is undefined", t.Base())
-		}
-
-		buf.Write(name)
-		return nil
-	}
+	kind := schema.Kind(t.Base())
 
 	// Gets the proper type out of the type definition
-	v, err := EvalType(t)
-	if err != nil {
-		return err
+	var unionTable fb.Table
+	if !t.Type(&unionTable) {
+		// Evaluate base types, such as uint8, string, etc
+		buf.WriteString(kind.String())
+		return nil
+		//return fmt.Errorf("failed to access union of type: %d", t.Id())
 	}
 
-	switch ty := v.(type) {
+	ty := new(schema.GoType)
+	ty.Init(unionTable.Bytes, unionTable.Pos)
+
+	switch kind {
 	// *ptr
-	case *program.PointerType:
+	case schema.KindPointer:
 		buf.Write(TokenStar.Bytes())
 
 		elem, ok := g.LookUpType(ty.Elem())
@@ -405,7 +367,7 @@ func (g *Generator) evalType(buf *bytes.Buffer, t *program.TypeDef) error {
 		return g.evalType(buf, elem)
 
 	// map[string]uint8
-	case *program.MapType:
+	case schema.KindMap:
 		buf.Write(TokenMap.Bytes())
 		buf.Write(TokenBracketLeft.Bytes())
 
@@ -428,7 +390,7 @@ func (g *Generator) evalType(buf *bytes.Buffer, t *program.TypeDef) error {
 		return g.evalType(buf, value)
 
 	// [4]int
-	case *program.ArrayType:
+	case schema.KindArray:
 		buf.Write(TokenBracketLeft.Bytes())
 		buf.WriteString(strconv.Itoa(int(ty.Size())))
 		buf.Write(TokenBracketRight.Bytes())
@@ -441,13 +403,8 @@ func (g *Generator) evalType(buf *bytes.Buffer, t *program.TypeDef) error {
 		return g.evalType(buf, elem)
 
 	// type Name struct {}
-	case *program.StructureType:
-		// Look for the name of the struct/interface
-		name, ok := g.LookUpStr(t.Base())
-		if !ok {
-			return fmt.Errorf("string with id %d is undefined", t.Base())
-		}
-		buf.Write(name)
+	case schema.KindStruct:
+		buf.WriteString(kind.String())
 		buf.Write(TokenSpace.Bytes())
 
 		buf.Write(TokenBraceLeft.Bytes())
@@ -457,7 +414,7 @@ func (g *Generator) evalType(buf *bytes.Buffer, t *program.TypeDef) error {
 		for i := 0; i < ty.FieldsLength(); i++ {
 			buf.Write(TokenTab.Bytes())
 
-			var f program.StructureField
+			var f schema.StructField
 			ty.Fields(&f, i)
 
 			// Looks for the name of the field
@@ -474,7 +431,7 @@ func (g *Generator) evalType(buf *bytes.Buffer, t *program.TypeDef) error {
 				return fmt.Errorf("type with id %d is undefined", f.Type())
 			}
 
-			if def.TypeType() == program.TypeFunctionType {
+			if def.Base() == uint32(schema.KindFunc) {
 				buf.Write(TokenFunc.Bytes())
 			}
 
@@ -487,13 +444,13 @@ func (g *Generator) evalType(buf *bytes.Buffer, t *program.TypeDef) error {
 		}
 
 		// Interface functions
-		for i := 0; i < ty.DefsLength(); i++ {
+		for i := 0; i < ty.MethodsLength(); i++ {
 			buf.Write(TokenTab.Bytes())
 
-			var defId = ty.Defs(i)
+			//var defId = ty.Methods(i)
 
 			// Look for the method defintion
-			def, ok := g.LookUpType(defId)
+			/*def, ok := g.LookUpType(defId)
 			if !ok {
 				return fmt.Errorf("type with id %d is undefined", defId)
 			}
@@ -508,7 +465,7 @@ func (g *Generator) evalType(buf *bytes.Buffer, t *program.TypeDef) error {
 			// Evaluate and write the type definition to the buffer
 			if err := g.evalType(buf, def); err != nil {
 				return err
-			}
+			}*/
 
 			buf.Write(TokenNewLine.Bytes())
 		}
@@ -517,7 +474,7 @@ func (g *Generator) evalType(buf *bytes.Buffer, t *program.TypeDef) error {
 		return nil
 
 	// (a uint8, b int32) uint32
-	case *program.FunctionType:
+	case schema.KindFunc:
 		// Parameters
 		buf.Write(TokenParenLeft.Bytes())
 		if ty.ParamsLength() > 0 {
@@ -530,12 +487,11 @@ func (g *Generator) evalType(buf *bytes.Buffer, t *program.TypeDef) error {
 		buf.Write(TokenParenRight.Bytes())
 
 		// Return values
-		if ty.ResultsLength() > 0 {
+		/*if ty.ResultsLength() > 0 {
 			buf.Write(TokenSpace.Bytes())
 
 			// look at first result to decide whether parentheses are needed
-			var first program.Pair
-			ty.Results(&first, 0)
+			var resultId = ty.Results(0)
 
 			// The key of the first result,
 			// if empty then result would be for example: "uint8"
@@ -559,23 +515,23 @@ func (g *Generator) evalType(buf *bytes.Buffer, t *program.TypeDef) error {
 			if needParens {
 				buf.Write(TokenParenRight.Bytes())
 			}
-		}
+		}*/
 		return nil
 
 	default:
-		return fmt.Errorf("unsupported type: %T", v)
+		return fmt.Errorf("unsupported type: %d", kind)
 	}
 }
 
-func (g *Generator) writePairList(buf *bytes.Buffer, listLength int, getPair func(obj *program.Pair, j int) bool) error {
+func (g *Generator) writePairList(buf *bytes.Buffer, listLength int, getPair func(j int) uint64) error {
 	for i := range listLength {
 		if i > 0 {
 			buf.Write(TokenComma.Bytes())
 			buf.Write(TokenSpace.Bytes())
 		}
 
-		var p program.Pair
-		getPair(&p, i)
+		//var p program.Pair
+		/*var pairId = getPair(i)
 
 		name, ok := g.LookUpStr(p.Key())
 		if !ok {
@@ -595,7 +551,7 @@ func (g *Generator) writePairList(buf *bytes.Buffer, listLength int, getPair fun
 
 		if err := g.evalType(buf, def); err != nil {
 			return err
-		}
+		}*/
 	}
 	return nil
 }

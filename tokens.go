@@ -54,6 +54,8 @@ const (
 	TokenLess         // <
 	TokenLessEqual    // <=
 
+	TokenArrowLeft // <-
+
 	TokenTab
 	TokenPackage
 	TokenImport
@@ -63,9 +65,11 @@ const (
 	TokenElse
 	TokenFunc
 	TokenDefer
+	TokenMake
 	TokenGo
 	TokenMap
 	TokenType
+	TokenChan
 	TokenReturn
 )
 
@@ -121,6 +125,8 @@ var tokens = [][]byte{
 	[]byte("<"),
 	[]byte("<="),
 
+	[]byte("<-"),
+
 	[]byte("    "),
 	[]byte("package"),
 	[]byte("import"),
@@ -130,9 +136,11 @@ var tokens = [][]byte{
 	[]byte("else"),
 	[]byte("func"),
 	[]byte("defer"),
+	[]byte("make"),
 	[]byte("go"),
 	[]byte("map"),
 	[]byte("type"),
+	[]byte("chan"),
 	[]byte("return"),
 }
 

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
+	schema "github.com/Opticode-Project/go-compiler/golang"
 	program "github.com/Opticode-Project/go-compiler/program"
 )
 
@@ -31,12 +32,12 @@ func (g *Generator) op_type(buf *bytes.Buffer, node *program.IndexedNode, flags 
 	}
 
 	// Check whether the field is either a structure or a function type
-	_type := def.TypeType()
-	if _type != program.TypeStructureType && _type != program.TypeFunctionType {
-		return fmt.Errorf("the operand must be either a structure or a function but got: %d", _type)
+	kind := schema.Kind(def.Base())
+	if kind != schema.KindStruct && kind != schema.KindFunc {
+		return fmt.Errorf("the operand must be either a structure or a function but got: %d", kind)
 	}
 
-	if _type == program.TypeFunctionType {
+	if kind == schema.KindFunc {
 		buf.Write(TokenFunc.Bytes())
 	}
 
