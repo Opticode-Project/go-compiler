@@ -7,27 +7,27 @@ import "strconv"
 type ValueFlag uint32
 
 const (
-	ValueFlagNone          ValueFlag = 0
-	ValueFlagPointer       ValueFlag = 1
-	ValueFlagQuotation     ValueFlag = 2
-	ValueFlagIfConditon    ValueFlag = 4
-	ValueFlagIfBody        ValueFlag = 8
-	ValueFlagIfElse        ValueFlag = 16
-	ValueFlagFuncMeta      ValueFlag = 32
-	ValueFlagFuncParam     ValueFlag = 64
-	ValueFlagFuncBody      ValueFlag = 128
-	ValueFlagSwitchExp     ValueFlag = 256
-	ValueFlagSwitchBody    ValueFlag = 512
-	ValueFlagCaseExp       ValueFlag = 1024
-	ValueFlagCaseBody      ValueFlag = 2048
-	ValueFlagForInit       ValueFlag = 4096
-	ValueFlagForCondition  ValueFlag = 8192
-	ValueFlagForPost       ValueFlag = 16384
-	ValueFlagForBody       ValueFlag = 32768
-	ValueFlagForRangeVar1  ValueFlag = 65536
-	ValueFlagForRangeVar2  ValueFlag = 131072
-	ValueFlagForRangeValue ValueFlag = 262144
-	ValueFlagDefaultBody   ValueFlag = 524288
+	ValueFlagNone          ValueFlag = 1
+	ValueFlagPointer       ValueFlag = 2
+	ValueFlagQuotation     ValueFlag = 4
+	ValueFlagIfConditon    ValueFlag = 8
+	ValueFlagIfBody        ValueFlag = 16
+	ValueFlagIfElse        ValueFlag = 32
+	ValueFlagFuncMeta      ValueFlag = 64
+	ValueFlagFuncParam     ValueFlag = 128
+	ValueFlagFuncBody      ValueFlag = 256
+	ValueFlagSwitchExp     ValueFlag = 512
+	ValueFlagSwitchBody    ValueFlag = 1024
+	ValueFlagCaseExp       ValueFlag = 2048
+	ValueFlagCaseBody      ValueFlag = 4096
+	ValueFlagForInit       ValueFlag = 8192
+	ValueFlagForCondition  ValueFlag = 16384
+	ValueFlagForPost       ValueFlag = 32768
+	ValueFlagForBody       ValueFlag = 65536
+	ValueFlagForRangeVar1  ValueFlag = 131072
+	ValueFlagForRangeVar2  ValueFlag = 262144
+	ValueFlagForRangeValue ValueFlag = 524288
+	ValueFlagDefaultBody   ValueFlag = 1048576
 )
 
 var EnumNamesValueFlag = map[ValueFlag]string{

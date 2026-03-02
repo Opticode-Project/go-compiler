@@ -8,32 +8,17 @@ type Type byte
 
 const (
 	TypeNONE          Type = 0
-	TypePointerType   Type = 1
-	TypeStructureType Type = 2
-	TypeFunctionType  Type = 3
-	TypeMapType       Type = 4
-	TypeArrayType     Type = 5
-	TypeTupleType     Type = 6
+	Typegolang_GoType Type = 1
 )
 
 var EnumNamesType = map[Type]string{
 	TypeNONE:          "NONE",
-	TypePointerType:   "PointerType",
-	TypeStructureType: "StructureType",
-	TypeFunctionType:  "FunctionType",
-	TypeMapType:       "MapType",
-	TypeArrayType:     "ArrayType",
-	TypeTupleType:     "TupleType",
+	Typegolang_GoType: "golang_GoType",
 }
 
 var EnumValuesType = map[string]Type{
 	"NONE":          TypeNONE,
-	"PointerType":   TypePointerType,
-	"StructureType": TypeStructureType,
-	"FunctionType":  TypeFunctionType,
-	"MapType":       TypeMapType,
-	"ArrayType":     TypeArrayType,
-	"TupleType":     TypeTupleType,
+	"golang_GoType": Typegolang_GoType,
 }
 
 func (v Type) String() string {

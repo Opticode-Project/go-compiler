@@ -68,20 +68,21 @@ const (
 	OpcodeMap              Opcode = 58
 	OpcodeArray            Opcode = 59
 	OpcodeChan             Opcode = 60
-	OpcodePanic            Opcode = 61
-	OpcodeRecover          Opcode = 62
-	OpcodeMake             Opcode = 63
-	OpcodeNew              Opcode = 64
-	OpcodeLen              Opcode = 65
-	OpcodeCap              Opcode = 66
-	OpcodeAppend           Opcode = 67
-	OpcodeCopy             Opcode = 68
-	OpcodeClose            Opcode = 69
-	OpcodeComplex          Opcode = 70
-	OpcodeReal             Opcode = 71
-	OpcodeImag             Opcode = 72
-	OpcodePrint            Opcode = 73
-	OpcodePrintln          Opcode = 74
+	OpcodeConstructor      Opcode = 61
+	OpcodePanic            Opcode = 62
+	OpcodeRecover          Opcode = 63
+	OpcodeMake             Opcode = 64
+	OpcodeNew              Opcode = 65
+	OpcodeLen              Opcode = 66
+	OpcodeCap              Opcode = 67
+	OpcodeAppend           Opcode = 68
+	OpcodeCopy             Opcode = 69
+	OpcodeClose            Opcode = 70
+	OpcodeComplex          Opcode = 71
+	OpcodeReal             Opcode = 72
+	OpcodeImag             Opcode = 73
+	OpcodePrint            Opcode = 74
+	OpcodePrintln          Opcode = 75
 )
 
 var EnumNamesOpcode = map[Opcode]string{
@@ -146,6 +147,7 @@ var EnumNamesOpcode = map[Opcode]string{
 	OpcodeMap:              "Map",
 	OpcodeArray:            "Array",
 	OpcodeChan:             "Chan",
+	OpcodeConstructor:      "Constructor",
 	OpcodePanic:            "Panic",
 	OpcodeRecover:          "Recover",
 	OpcodeMake:             "Make",
@@ -224,6 +226,7 @@ var EnumValuesOpcode = map[string]Opcode{
 	"Map":              OpcodeMap,
 	"Array":            OpcodeArray,
 	"Chan":             OpcodeChan,
+	"Constructor":      OpcodeConstructor,
 	"Panic":            OpcodePanic,
 	"Recover":          OpcodeRecover,
 	"Make":             OpcodeMake,

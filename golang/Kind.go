@@ -13,28 +13,27 @@ const (
 	KindInt16      Kind = 3
 	KindInt32      Kind = 4
 	KindInt64      Kind = 5
-	KindUint       Kind = 6
-	KindUint8      Kind = 7
-	KindUint16     Kind = 8
-	KindUint32     Kind = 9
-	KindUint64     Kind = 10
-	KindUintptr    Kind = 11
-	KindFloat32    Kind = 12
-	KindFloat64    Kind = 13
-	KindComplex64  Kind = 14
-	KindComplex128 Kind = 15
-	KindString     Kind = 16
-	KindRune       Kind = 17
-	KindByte       Kind = 18
-	KindBoolean    Kind = 19
-	KindPointer    Kind = 20
-	KindStruct     Kind = 21
-	KindFunc       Kind = 22
-	KindArray      Kind = 23
-	KindSlice      Kind = 24
-	KindMap        Kind = 25
-	KindChannel    Kind = 26
-	KindInterface  Kind = 27
+	KindUint8      Kind = 6
+	KindUint16     Kind = 7
+	KindUint32     Kind = 8
+	KindUint64     Kind = 9
+	KindUintptr    Kind = 10
+	KindFloat32    Kind = 11
+	KindFloat64    Kind = 12
+	KindComplex64  Kind = 13
+	KindComplex128 Kind = 14
+	KindString     Kind = 15
+	KindRune       Kind = 16
+	KindByte       Kind = 17
+	KindBoolean    Kind = 18
+	KindPointer    Kind = 19
+	KindStruct     Kind = 20
+	KindFunc       Kind = 21
+	KindArray      Kind = 22
+	KindSlice      Kind = 23
+	KindMap        Kind = 24
+	KindChannel    Kind = 25
+	KindInterface  Kind = 26
 )
 
 var EnumNamesKind = map[Kind]string{
@@ -44,7 +43,6 @@ var EnumNamesKind = map[Kind]string{
 	KindInt16:      "Int16",
 	KindInt32:      "Int32",
 	KindInt64:      "Int64",
-	KindUint:       "Uint",
 	KindUint8:      "Uint8",
 	KindUint16:     "Uint16",
 	KindUint32:     "Uint32",
@@ -75,7 +73,6 @@ var EnumValuesKind = map[string]Kind{
 	"Int16":      KindInt16,
 	"Int32":      KindInt32,
 	"Int64":      KindInt64,
-	"Uint":       KindUint,
 	"Uint8":      KindUint8,
 	"Uint16":     KindUint16,
 	"Uint32":     KindUint32,
