@@ -44,7 +44,7 @@ func (rcv *UnaryNode) Table() flatbuffers.Table {
 func (rcv *UnaryNode) Value(obj *NodeValue) *NodeValue {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
 	if o != 0 {
-		x := rcv._tab.Indirect(o + rcv._tab.Pos)
+		x := o + rcv._tab.Pos
 		if obj == nil {
 			obj = new(NodeValue)
 		}
@@ -58,7 +58,7 @@ func UnaryNodeStart(builder *flatbuffers.Builder) {
 	builder.StartObject(1)
 }
 func UnaryNodeAddValue(builder *flatbuffers.Builder, value flatbuffers.UOffsetT) {
-	builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(value), 0)
+	builder.PrependStructSlot(0, flatbuffers.UOffsetT(value), 0)
 }
 func UnaryNodeEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()

@@ -57,8 +57,7 @@ func (rcv *IndexedNode) Fields(obj *NodeValue, j int) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(6))
 	if o != 0 {
 		x := rcv._tab.Vector(o)
-		x += flatbuffers.UOffsetT(j) * 4
-		x = rcv._tab.Indirect(x)
+		x += flatbuffers.UOffsetT(j) * 16
 		obj.Init(rcv._tab.Bytes, x)
 		return true
 	}
@@ -83,7 +82,7 @@ func IndexedNodeAddFields(builder *flatbuffers.Builder, fields flatbuffers.UOffs
 	builder.PrependUOffsetTSlot(1, flatbuffers.UOffsetT(fields), 0)
 }
 func IndexedNodeStartFieldsVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
-	return builder.StartVector(4, numElems, 4)
+	return builder.StartVector(16, numElems, 8)
 }
 func IndexedNodeEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()

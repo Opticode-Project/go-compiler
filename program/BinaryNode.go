@@ -44,7 +44,7 @@ func (rcv *BinaryNode) Table() flatbuffers.Table {
 func (rcv *BinaryNode) Left(obj *NodeValue) *NodeValue {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
 	if o != 0 {
-		x := rcv._tab.Indirect(o + rcv._tab.Pos)
+		x := o + rcv._tab.Pos
 		if obj == nil {
 			obj = new(NodeValue)
 		}
@@ -57,7 +57,7 @@ func (rcv *BinaryNode) Left(obj *NodeValue) *NodeValue {
 func (rcv *BinaryNode) Right(obj *NodeValue) *NodeValue {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(6))
 	if o != 0 {
-		x := rcv._tab.Indirect(o + rcv._tab.Pos)
+		x := o + rcv._tab.Pos
 		if obj == nil {
 			obj = new(NodeValue)
 		}
@@ -71,10 +71,10 @@ func BinaryNodeStart(builder *flatbuffers.Builder) {
 	builder.StartObject(2)
 }
 func BinaryNodeAddLeft(builder *flatbuffers.Builder, left flatbuffers.UOffsetT) {
-	builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(left), 0)
+	builder.PrependStructSlot(0, flatbuffers.UOffsetT(left), 0)
 }
 func BinaryNodeAddRight(builder *flatbuffers.Builder, right flatbuffers.UOffsetT) {
-	builder.PrependUOffsetTSlot(1, flatbuffers.UOffsetT(right), 0)
+	builder.PrependStructSlot(1, flatbuffers.UOffsetT(right), 0)
 }
 func BinaryNodeEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()

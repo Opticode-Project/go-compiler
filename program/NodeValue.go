@@ -7,29 +7,7 @@ import (
 )
 
 type NodeValue struct {
-	_tab flatbuffers.Table
-}
-
-func GetRootAsNodeValue(buf []byte, offset flatbuffers.UOffsetT) *NodeValue {
-	n := flatbuffers.GetUOffsetT(buf[offset:])
-	x := &NodeValue{}
-	x.Init(buf, n+offset)
-	return x
-}
-
-func FinishNodeValueBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
-	builder.Finish(offset)
-}
-
-func GetSizePrefixedRootAsNodeValue(buf []byte, offset flatbuffers.UOffsetT) *NodeValue {
-	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
-	x := &NodeValue{}
-	x.Init(buf, n+offset+flatbuffers.SizeUint32)
-	return x
-}
-
-func FinishSizePrefixedNodeValueBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
-	builder.FinishSizePrefixed(offset)
+	_tab flatbuffers.Struct
 }
 
 func (rcv *NodeValue) Init(buf []byte, i flatbuffers.UOffsetT) {
@@ -38,57 +16,34 @@ func (rcv *NodeValue) Init(buf []byte, i flatbuffers.UOffsetT) {
 }
 
 func (rcv *NodeValue) Table() flatbuffers.Table {
-	return rcv._tab
+	return rcv._tab.Table
+}
+
+func (rcv *NodeValue) Value() uint64 {
+	return rcv._tab.GetUint64(rcv._tab.Pos + flatbuffers.UOffsetT(0))
+}
+func (rcv *NodeValue) MutateValue(n uint64) bool {
+	return rcv._tab.MutateUint64(rcv._tab.Pos+flatbuffers.UOffsetT(0), n)
 }
 
 func (rcv *NodeValue) Type() uint32 {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
-	if o != 0 {
-		return rcv._tab.GetUint32(o + rcv._tab.Pos)
-	}
-	return 0
+	return rcv._tab.GetUint32(rcv._tab.Pos + flatbuffers.UOffsetT(8))
 }
-
 func (rcv *NodeValue) MutateType(n uint32) bool {
-	return rcv._tab.MutateUint32Slot(4, n)
-}
-
-func (rcv *NodeValue) Value() int64 {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(6))
-	if o != 0 {
-		return rcv._tab.GetInt64(o + rcv._tab.Pos)
-	}
-	return 0
-}
-
-func (rcv *NodeValue) MutateValue(n int64) bool {
-	return rcv._tab.MutateInt64Slot(6, n)
+	return rcv._tab.MutateUint32(rcv._tab.Pos+flatbuffers.UOffsetT(8), n)
 }
 
 func (rcv *NodeValue) Flags() uint32 {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(8))
-	if o != 0 {
-		return rcv._tab.GetUint32(o + rcv._tab.Pos)
-	}
-	return 0
+	return rcv._tab.GetUint32(rcv._tab.Pos + flatbuffers.UOffsetT(12))
 }
-
 func (rcv *NodeValue) MutateFlags(n uint32) bool {
-	return rcv._tab.MutateUint32Slot(8, n)
+	return rcv._tab.MutateUint32(rcv._tab.Pos+flatbuffers.UOffsetT(12), n)
 }
 
-func NodeValueStart(builder *flatbuffers.Builder) {
-	builder.StartObject(3)
-}
-func NodeValueAddType(builder *flatbuffers.Builder, type_ uint32) {
-	builder.PrependUint32Slot(0, type_, 0)
-}
-func NodeValueAddValue(builder *flatbuffers.Builder, value int64) {
-	builder.PrependInt64Slot(1, value, 0)
-}
-func NodeValueAddFlags(builder *flatbuffers.Builder, flags uint32) {
-	builder.PrependUint32Slot(2, flags, 0)
-}
-func NodeValueEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	return builder.EndObject()
+func CreateNodeValue(builder *flatbuffers.Builder, value uint64, type_ uint32, flags uint32) flatbuffers.UOffsetT {
+	builder.Prep(8, 16)
+	builder.PrependUint32(flags)
+	builder.PrependUint32(type_)
+	builder.PrependUint64(value)
+	return builder.Offset()
 }

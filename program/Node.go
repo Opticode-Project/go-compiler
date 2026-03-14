@@ -41,16 +41,16 @@ func (rcv *Node) Table() flatbuffers.Table {
 	return rcv._tab
 }
 
-func (rcv *Node) Id() int64 {
+func (rcv *Node) Id() uint64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
 	if o != 0 {
-		return rcv._tab.GetInt64(o + rcv._tab.Pos)
+		return rcv._tab.GetUint64(o + rcv._tab.Pos)
 	}
 	return 0
 }
 
-func (rcv *Node) MutateId(n int64) bool {
-	return rcv._tab.MutateInt64Slot(4, n)
+func (rcv *Node) MutateId(n uint64) bool {
+	return rcv._tab.MutateUint64Slot(4, n)
 }
 
 func (rcv *Node) Opcode() uint32 {
@@ -65,28 +65,28 @@ func (rcv *Node) MutateOpcode(n uint32) bool {
 	return rcv._tab.MutateUint32Slot(6, n)
 }
 
-func (rcv *Node) Parent() int64 {
+func (rcv *Node) Parent() uint64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(8))
 	if o != 0 {
-		return rcv._tab.GetInt64(o + rcv._tab.Pos)
+		return rcv._tab.GetUint64(o + rcv._tab.Pos)
 	}
 	return 0
 }
 
-func (rcv *Node) MutateParent(n int64) bool {
-	return rcv._tab.MutateInt64Slot(8, n)
+func (rcv *Node) MutateParent(n uint64) bool {
+	return rcv._tab.MutateUint64Slot(8, n)
 }
 
-func (rcv *Node) Next() int64 {
+func (rcv *Node) Next() uint64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(10))
 	if o != 0 {
-		return rcv._tab.GetInt64(o + rcv._tab.Pos)
+		return rcv._tab.GetUint64(o + rcv._tab.Pos)
 	}
 	return 0
 }
 
-func (rcv *Node) MutateNext(n int64) bool {
-	return rcv._tab.MutateInt64Slot(10, n)
+func (rcv *Node) MutateNext(n uint64) bool {
+	return rcv._tab.MutateUint64Slot(10, n)
 }
 
 func (rcv *Node) Flags() uint32 {
@@ -125,17 +125,17 @@ func (rcv *Node) Node(obj *flatbuffers.Table) bool {
 func NodeStart(builder *flatbuffers.Builder) {
 	builder.StartObject(7)
 }
-func NodeAddId(builder *flatbuffers.Builder, id int64) {
-	builder.PrependInt64Slot(0, id, 0)
+func NodeAddId(builder *flatbuffers.Builder, id uint64) {
+	builder.PrependUint64Slot(0, id, 0)
 }
 func NodeAddOpcode(builder *flatbuffers.Builder, opcode uint32) {
 	builder.PrependUint32Slot(1, opcode, 0)
 }
-func NodeAddParent(builder *flatbuffers.Builder, parent int64) {
-	builder.PrependInt64Slot(2, parent, 0)
+func NodeAddParent(builder *flatbuffers.Builder, parent uint64) {
+	builder.PrependUint64Slot(2, parent, 0)
 }
-func NodeAddNext(builder *flatbuffers.Builder, next int64) {
-	builder.PrependInt64Slot(3, next, 0)
+func NodeAddNext(builder *flatbuffers.Builder, next uint64) {
+	builder.PrependUint64Slot(3, next, 0)
 }
 func NodeAddFlags(builder *flatbuffers.Builder, flags uint32) {
 	builder.PrependUint32Slot(4, flags, 0)

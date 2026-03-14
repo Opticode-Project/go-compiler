@@ -7,24 +7,24 @@ import "strconv"
 type Flag uint32
 
 const (
-	FlagNone        Flag = 0
-	FlagNodeIndexed Flag = 1
-	FlagNodeBinary  Flag = 2
-	FlagNodeUnary   Flag = 4
+	FlagFirstSegment  Flag = 1
+	FlagSecondSegment Flag = 2
+	FlagThirdSegment  Flag = 4
+	FlagForthSegment  Flag = 8
 )
 
 var EnumNamesFlag = map[Flag]string{
-	FlagNone:        "None",
-	FlagNodeIndexed: "NodeIndexed",
-	FlagNodeBinary:  "NodeBinary",
-	FlagNodeUnary:   "NodeUnary",
+	FlagFirstSegment:  "FirstSegment",
+	FlagSecondSegment: "SecondSegment",
+	FlagThirdSegment:  "ThirdSegment",
+	FlagForthSegment:  "ForthSegment",
 }
 
 var EnumValuesFlag = map[string]Flag{
-	"None":        FlagNone,
-	"NodeIndexed": FlagNodeIndexed,
-	"NodeBinary":  FlagNodeBinary,
-	"NodeUnary":   FlagNodeUnary,
+	"FirstSegment":  FlagFirstSegment,
+	"SecondSegment": FlagSecondSegment,
+	"ThirdSegment":  FlagThirdSegment,
+	"ForthSegment":  FlagForthSegment,
 }
 
 func (v Flag) String() string {

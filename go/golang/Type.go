@@ -6,42 +6,42 @@ import (
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
-type GoType struct {
+type Type struct {
 	_tab flatbuffers.Table
 }
 
-func GetRootAsGoType(buf []byte, offset flatbuffers.UOffsetT) *GoType {
+func GetRootAsType(buf []byte, offset flatbuffers.UOffsetT) *Type {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
-	x := &GoType{}
+	x := &Type{}
 	x.Init(buf, n+offset)
 	return x
 }
 
-func FinishGoTypeBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
+func FinishTypeBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
 	builder.Finish(offset)
 }
 
-func GetSizePrefixedRootAsGoType(buf []byte, offset flatbuffers.UOffsetT) *GoType {
+func GetSizePrefixedRootAsType(buf []byte, offset flatbuffers.UOffsetT) *Type {
 	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
-	x := &GoType{}
+	x := &Type{}
 	x.Init(buf, n+offset+flatbuffers.SizeUint32)
 	return x
 }
 
-func FinishSizePrefixedGoTypeBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
+func FinishSizePrefixedTypeBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
 	builder.FinishSizePrefixed(offset)
 }
 
-func (rcv *GoType) Init(buf []byte, i flatbuffers.UOffsetT) {
+func (rcv *Type) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
 }
 
-func (rcv *GoType) Table() flatbuffers.Table {
+func (rcv *Type) Table() flatbuffers.Table {
 	return rcv._tab
 }
 
-func (rcv *GoType) Elem() uint32 {
+func (rcv *Type) Elem() uint32 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
 	if o != 0 {
 		return rcv._tab.GetUint32(o + rcv._tab.Pos)
@@ -49,11 +49,11 @@ func (rcv *GoType) Elem() uint32 {
 	return 0
 }
 
-func (rcv *GoType) MutateElem(n uint32) bool {
+func (rcv *Type) MutateElem(n uint32) bool {
 	return rcv._tab.MutateUint32Slot(4, n)
 }
 
-func (rcv *GoType) Methods(j int) uint64 {
+func (rcv *Type) Methods(j int) uint64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(6))
 	if o != 0 {
 		a := rcv._tab.Vector(o)
@@ -62,7 +62,7 @@ func (rcv *GoType) Methods(j int) uint64 {
 	return 0
 }
 
-func (rcv *GoType) MethodsLength() int {
+func (rcv *Type) MethodsLength() int {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(6))
 	if o != 0 {
 		return rcv._tab.VectorLen(o)
@@ -70,7 +70,7 @@ func (rcv *GoType) MethodsLength() int {
 	return 0
 }
 
-func (rcv *GoType) MutateMethods(j int, n uint64) bool {
+func (rcv *Type) MutateMethods(j int, n uint64) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(6))
 	if o != 0 {
 		a := rcv._tab.Vector(o)
@@ -79,19 +79,18 @@ func (rcv *GoType) MutateMethods(j int, n uint64) bool {
 	return false
 }
 
-func (rcv *GoType) Fields(obj *StructField, j int) bool {
+func (rcv *Type) Fields(obj *StructField, j int) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(8))
 	if o != 0 {
 		x := rcv._tab.Vector(o)
-		x += flatbuffers.UOffsetT(j) * 4
-		x = rcv._tab.Indirect(x)
+		x += flatbuffers.UOffsetT(j) * 12
 		obj.Init(rcv._tab.Bytes, x)
 		return true
 	}
 	return false
 }
 
-func (rcv *GoType) FieldsLength() int {
+func (rcv *Type) FieldsLength() int {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(8))
 	if o != 0 {
 		return rcv._tab.VectorLen(o)
@@ -99,7 +98,7 @@ func (rcv *GoType) FieldsLength() int {
 	return 0
 }
 
-func (rcv *GoType) Params(j int) uint64 {
+func (rcv *Type) Params(j int) uint64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(10))
 	if o != 0 {
 		a := rcv._tab.Vector(o)
@@ -108,7 +107,7 @@ func (rcv *GoType) Params(j int) uint64 {
 	return 0
 }
 
-func (rcv *GoType) ParamsLength() int {
+func (rcv *Type) ParamsLength() int {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(10))
 	if o != 0 {
 		return rcv._tab.VectorLen(o)
@@ -116,7 +115,7 @@ func (rcv *GoType) ParamsLength() int {
 	return 0
 }
 
-func (rcv *GoType) MutateParams(j int, n uint64) bool {
+func (rcv *Type) MutateParams(j int, n uint64) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(10))
 	if o != 0 {
 		a := rcv._tab.Vector(o)
@@ -125,7 +124,7 @@ func (rcv *GoType) MutateParams(j int, n uint64) bool {
 	return false
 }
 
-func (rcv *GoType) Results(j int) uint64 {
+func (rcv *Type) Results(j int) uint64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(12))
 	if o != 0 {
 		a := rcv._tab.Vector(o)
@@ -134,7 +133,7 @@ func (rcv *GoType) Results(j int) uint64 {
 	return 0
 }
 
-func (rcv *GoType) ResultsLength() int {
+func (rcv *Type) ResultsLength() int {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(12))
 	if o != 0 {
 		return rcv._tab.VectorLen(o)
@@ -142,7 +141,7 @@ func (rcv *GoType) ResultsLength() int {
 	return 0
 }
 
-func (rcv *GoType) MutateResults(j int, n uint64) bool {
+func (rcv *Type) MutateResults(j int, n uint64) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(12))
 	if o != 0 {
 		a := rcv._tab.Vector(o)
@@ -151,7 +150,7 @@ func (rcv *GoType) MutateResults(j int, n uint64) bool {
 	return false
 }
 
-func (rcv *GoType) Method() uint64 {
+func (rcv *Type) Method() uint64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(14))
 	if o != 0 {
 		return rcv._tab.GetUint64(o + rcv._tab.Pos)
@@ -159,11 +158,11 @@ func (rcv *GoType) Method() uint64 {
 	return 0
 }
 
-func (rcv *GoType) MutateMethod(n uint64) bool {
+func (rcv *Type) MutateMethod(n uint64) bool {
 	return rcv._tab.MutateUint64Slot(14, n)
 }
 
-func (rcv *GoType) Key() uint32 {
+func (rcv *Type) Key() uint32 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(16))
 	if o != 0 {
 		return rcv._tab.GetUint32(o + rcv._tab.Pos)
@@ -171,11 +170,11 @@ func (rcv *GoType) Key() uint32 {
 	return 0
 }
 
-func (rcv *GoType) MutateKey(n uint32) bool {
+func (rcv *Type) MutateKey(n uint32) bool {
 	return rcv._tab.MutateUint32Slot(16, n)
 }
 
-func (rcv *GoType) Value() uint32 {
+func (rcv *Type) Value() uint32 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(18))
 	if o != 0 {
 		return rcv._tab.GetUint32(o + rcv._tab.Pos)
@@ -183,23 +182,23 @@ func (rcv *GoType) Value() uint32 {
 	return 0
 }
 
-func (rcv *GoType) MutateValue(n uint32) bool {
+func (rcv *Type) MutateValue(n uint32) bool {
 	return rcv._tab.MutateUint32Slot(18, n)
 }
 
-func (rcv *GoType) Dir() uint32 {
+func (rcv *Type) Dir() bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(20))
 	if o != 0 {
-		return rcv._tab.GetUint32(o + rcv._tab.Pos)
+		return rcv._tab.GetBool(o + rcv._tab.Pos)
 	}
-	return 0
+	return false
 }
 
-func (rcv *GoType) MutateDir(n uint32) bool {
-	return rcv._tab.MutateUint32Slot(20, n)
+func (rcv *Type) MutateDir(n bool) bool {
+	return rcv._tab.MutateBoolSlot(20, n)
 }
 
-func (rcv *GoType) Size() uint64 {
+func (rcv *Type) Size() uint64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(22))
 	if o != 0 {
 		return rcv._tab.GetUint64(o + rcv._tab.Pos)
@@ -207,55 +206,55 @@ func (rcv *GoType) Size() uint64 {
 	return 0
 }
 
-func (rcv *GoType) MutateSize(n uint64) bool {
+func (rcv *Type) MutateSize(n uint64) bool {
 	return rcv._tab.MutateUint64Slot(22, n)
 }
 
-func GoTypeStart(builder *flatbuffers.Builder) {
+func TypeStart(builder *flatbuffers.Builder) {
 	builder.StartObject(10)
 }
-func GoTypeAddElem(builder *flatbuffers.Builder, elem uint32) {
+func TypeAddElem(builder *flatbuffers.Builder, elem uint32) {
 	builder.PrependUint32Slot(0, elem, 0)
 }
-func GoTypeAddMethods(builder *flatbuffers.Builder, methods flatbuffers.UOffsetT) {
+func TypeAddMethods(builder *flatbuffers.Builder, methods flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(1, flatbuffers.UOffsetT(methods), 0)
 }
-func GoTypeStartMethodsVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+func TypeStartMethodsVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.StartVector(8, numElems, 8)
 }
-func GoTypeAddFields(builder *flatbuffers.Builder, fields flatbuffers.UOffsetT) {
+func TypeAddFields(builder *flatbuffers.Builder, fields flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(2, flatbuffers.UOffsetT(fields), 0)
 }
-func GoTypeStartFieldsVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
-	return builder.StartVector(4, numElems, 4)
+func TypeStartFieldsVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(12, numElems, 4)
 }
-func GoTypeAddParams(builder *flatbuffers.Builder, params flatbuffers.UOffsetT) {
+func TypeAddParams(builder *flatbuffers.Builder, params flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(3, flatbuffers.UOffsetT(params), 0)
 }
-func GoTypeStartParamsVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+func TypeStartParamsVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.StartVector(8, numElems, 8)
 }
-func GoTypeAddResults(builder *flatbuffers.Builder, results flatbuffers.UOffsetT) {
+func TypeAddResults(builder *flatbuffers.Builder, results flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(4, flatbuffers.UOffsetT(results), 0)
 }
-func GoTypeStartResultsVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+func TypeStartResultsVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.StartVector(8, numElems, 8)
 }
-func GoTypeAddMethod(builder *flatbuffers.Builder, method uint64) {
+func TypeAddMethod(builder *flatbuffers.Builder, method uint64) {
 	builder.PrependUint64Slot(5, method, 0)
 }
-func GoTypeAddKey(builder *flatbuffers.Builder, key uint32) {
+func TypeAddKey(builder *flatbuffers.Builder, key uint32) {
 	builder.PrependUint32Slot(6, key, 0)
 }
-func GoTypeAddValue(builder *flatbuffers.Builder, value uint32) {
+func TypeAddValue(builder *flatbuffers.Builder, value uint32) {
 	builder.PrependUint32Slot(7, value, 0)
 }
-func GoTypeAddDir(builder *flatbuffers.Builder, dir uint32) {
-	builder.PrependUint32Slot(8, dir, 0)
+func TypeAddDir(builder *flatbuffers.Builder, dir bool) {
+	builder.PrependBoolSlot(8, dir, false)
 }
-func GoTypeAddSize(builder *flatbuffers.Builder, size uint64) {
+func TypeAddSize(builder *flatbuffers.Builder, size uint64) {
 	builder.PrependUint64Slot(9, size, 0)
 }
-func GoTypeEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
+func TypeEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
