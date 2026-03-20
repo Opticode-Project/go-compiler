@@ -81,7 +81,6 @@ func (s *TCPServer) handle(conn net.Conn) {
 			s.writePacket(conn, network.EncodePacket(response, s.builder))
 
 		case *network.SetNodePacket:
-			//builder := flatbuffers.NewBuilder(1024)
 			node := program.GetRootAsNode(p.Data, 0)
 			if node == nil {
 				break
@@ -99,21 +98,21 @@ func (s *TCPServer) handle(conn net.Conn) {
 
 			slices.Sort(keys)
 
+			var path = []uint64{0}
 			for _, id := range keys {
 				node := s.generator.nodes[id]
 				log.Println(id, golang.Opcode(node.Opcode()), golang.NodeFlag(node.Flags()), int64(node.Next()))
 
-				if id == s.generator.path[len(s.generator.path)-1] {
-					s.generator.path = append(s.generator.path, node.Next())
+				if id == path[len(path)-1] {
+					path = append(path, node.Next())
 				}
 			}
 
-			log.Printf("Path: %v", s.generator.path)
-
+			log.Printf("Path: %v", path)
 			now := time.Now()
 
-			s.generator.Compile(app)
-			gf, err := s.generator.Export("main", s.generator.path)
+			s.generator.Compile(app, path)
+			gf, err := s.generator.Export("main", path)
 			if err != nil {
 				panic(err)
 			}

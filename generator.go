@@ -30,7 +30,6 @@ type DeserializeNode struct {
 
 type Generator struct {
 	program *golang.App
-	path    []uint64
 	nodes   map[uint64]*program.Node
 
 	deserializeNodes map[uint64]*DeserializeNode
@@ -43,7 +42,6 @@ type Generator struct {
 func NewGenerator() *Generator {
 	return &Generator{
 		nodes: make(map[uint64]*program.Node),
-		path:  []uint64{0},
 	}
 }
 
@@ -65,7 +63,7 @@ func (g *Generator) SetNode(node *program.Node) {
 	g.nodes[node.Id()] = node
 }
 
-func (g *Generator) Compile(app *golang.App) {
+func (g *Generator) Compile(app *golang.App, path []uint64) {
 	g.program = app
 	g.deserializeNodes = make(map[uint64]*DeserializeNode, len(g.nodes))
 
@@ -74,9 +72,9 @@ func (g *Generator) Compile(app *golang.App) {
 	sem := make(chan struct{}, maxRoutines) // semaphore channel
 	var wg sync.WaitGroup
 
-	log.Printf("%v", g.path)
-	for _, i := range g.path {
-		if int64(i) == -1 {
+	for _, i := range path {
+		const InvalidNode = ^uint64(0)
+		if i == InvalidNode {
 			break
 		}
 

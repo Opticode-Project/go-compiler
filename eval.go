@@ -97,15 +97,15 @@ func (g *Generator) EvalIndexed(buf *bytes.Buffer, opcode golang.Opcode, node *p
 	switch opcode {
 	case golang.OpcodePackage:
 		return g.op_package(buf, node, evalFlags)
-		/*case golang.OpcodeImport:
-			return g.op_import(buf, node, evalFlags)
-		case golang.OpcodeConst:
-			return g.op_const(buf, node, evalFlags)
-		case golang.OpcodeVar:
-			return g.op_var(buf, node, evalFlags)
-		case golang.OpcodeIf:
-			return g.op_if(buf, node, evalFlags)
-		case golang.OpcodeFunc:
+	case golang.OpcodeImport:
+		return g.op_import(buf, node, evalFlags)
+	/*case golang.OpcodeConst:
+		return g.op_const(buf, node, evalFlags)
+	case golang.OpcodeVar:
+		return g.op_var(buf, node, evalFlags)*/
+	case golang.OpcodeIf:
+		return g.op_if(buf, node, evalFlags)
+		/*case golang.OpcodeFunc:
 			return g.op_func(buf, node, evalFlags)
 		case golang.OpcodeCall:
 			return g.op_call(buf, node, evalFlags)
@@ -120,12 +120,12 @@ func (g *Generator) EvalIndexed(buf *bytes.Buffer, opcode golang.Opcode, node *p
 
 func (g *Generator) EvalBinary(buf *bytes.Buffer, opcode golang.Opcode, node *program.BinaryNode, evalFlags EvalFlags) error {
 	switch opcode {
-	/*case golang.OpcodeImportValue:
+	case golang.OpcodeImportValue:
 		return g.op_importValue(buf, node, evalFlags)
-	case golang.OpcodeConstValue:
+	/*case golang.OpcodeConstValue:
 		return g.op_constValue(buf, node, evalFlags)
 	case golang.OpcodeVarValue:
-		return g.op_varValue(buf, node, evalFlags)
+		return g.op_varValue(buf, node, evalFlags)*/
 
 	case golang.OpcodeEqual:
 		return g.op_binary(buf, node, TokenCompare, evalFlags)
@@ -190,7 +190,7 @@ func (g *Generator) EvalBinary(buf *bytes.Buffer, opcode golang.Opcode, node *pr
 	case golang.OpcodeLeftShift:
 		return g.op_binary(buf, node, TokenShiftLeft, evalFlags)
 	case golang.OpcodeRightShift:
-		return g.op_binary(buf, node, TokenShiftRight, evalFlags)*/
+		return g.op_binary(buf, node, TokenShiftRight, evalFlags)
 	}
 
 	return fmt.Errorf("invalid opcode on node with opcode of %s", opcode)
@@ -198,12 +198,12 @@ func (g *Generator) EvalBinary(buf *bytes.Buffer, opcode golang.Opcode, node *pr
 
 func (g *Generator) EvalUnary(buf *bytes.Buffer, opcode golang.Opcode, node *program.UnaryNode, evalFlags EvalFlags) error {
 	switch opcode {
-	/*case golang.OpcodeNot:
+	case golang.OpcodeNot:
 		return g.op_unaryPrefix(buf, node, TokenNot, evalFlags)
-	case golang.OpcodeDefer:
+	/*case golang.OpcodeDefer:
 		return g.op_defer(buf, node, evalFlags)
 	case golang.OpcodeGoRoutine:
-		return g.op_goRoutine(buf, node, evalFlags)
+		return g.op_goRoutine(buf, node, evalFlags)*/
 
 	case golang.OpcodeInc:
 		return g.op_unarySuffix(buf, node, TokenIncrement, evalFlags)
@@ -215,7 +215,7 @@ func (g *Generator) EvalUnary(buf *bytes.Buffer, opcode golang.Opcode, node *pro
 		return g.op_unaryPrefix(buf, node, TokenStar, evalFlags)
 
 	case golang.OpcodeReceive:
-		return g.op_unaryPrefix(buf, node, TokenArrowLeft, evalFlags)*/
+		return g.op_unaryPrefix(buf, node, TokenArrowLeft, evalFlags)
 	}
 
 	return fmt.Errorf("invalid opcode on node with opcode of %s", opcode)
