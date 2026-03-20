@@ -86,8 +86,6 @@ func (g *Generator) Compile(app *golang.App, path []uint64) {
 			defer func() { <-sem }() // release the slot when done
 
 			node := g.nodes[index]
-			log.Println(index, golang.Opcode(node.Opcode()), golang.NodeFlag(node.Flags()), int64(node.Next()))
-
 			buf, err := g.Eval(node, 0)
 			if err != nil {
 				log.Println(err)
@@ -150,7 +148,7 @@ func (g *Generator) Export(moduleId string, p []uint64) ([]*GoFile, error) {
 			// Add a transition seperator for lines with an extra line inbetween (e.g., Package -> Import)
 			out.Grow(len(*n.Content))
 			out.Write(*n.Content)
-			out.WriteRune('\n')
+			out.WriteString("\n\n")
 		}
 	}
 
