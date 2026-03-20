@@ -1,33 +1,36 @@
-package golang
+package compiler
 
 import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"log"
 	"net"
+	"slices"
+	"time"
 
+	"github.com/Opticode-Project/go-compiler/go/golang"
 	"github.com/Opticode-Project/go-compiler/network"
+	"github.com/Opticode-Project/go-compiler/program"
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
 const OpticodeProtocol uint16 = 1
 
 type TCPServer struct {
-	Port     uint16
-	listener net.Listener
-	builder  *flatbuffers.Builder
+	generator *Generator
+	listener  net.Listener
+	builder   *flatbuffers.Builder
 }
 
-func (s *TCPServer) Start() error {
-	addr := fmt.Sprintf("127.0.0.1:%d", s.Port)
-
+func (s *TCPServer) Start(addr string) error {
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
 	}
 
 	s.listener = ln
-	fmt.Println("Server listening on port", s.Port)
+	fmt.Println("Server listening on address", ln.Addr())
 
 	go s.acceptLoop()
 	return nil
@@ -76,6 +79,50 @@ func (s *TCPServer) handle(conn net.Conn) {
 			response.Message = ""
 
 			s.writePacket(conn, network.EncodePacket(response, s.builder))
+
+		case *network.SetNodePacket:
+			//builder := flatbuffers.NewBuilder(1024)
+			node := program.GetRootAsNode(p.Data, 0)
+			if node == nil {
+				break
+			}
+
+			s.generator.SetNode(node)
+
+		case *network.ExportPacket:
+			app := golang.GetRootAsApp(p.Data, 0)
+
+			keys := make([]uint64, 0, len(s.generator.nodes))
+			for id := range s.generator.nodes {
+				keys = append(keys, id)
+			}
+
+			slices.Sort(keys)
+
+			for _, id := range keys {
+				node := s.generator.nodes[id]
+				log.Println(id, golang.Opcode(node.Opcode()), golang.NodeFlag(node.Flags()), int64(node.Next()))
+
+				if id == s.generator.path[len(s.generator.path)-1] {
+					s.generator.path = append(s.generator.path, node.Next())
+				}
+			}
+
+			log.Printf("Path: %v", s.generator.path)
+
+			now := time.Now()
+
+			s.generator.Compile(app)
+			gf, err := s.generator.Export("main", s.generator.path)
+			if err != nil {
+				panic(err)
+			}
+
+			log.Printf("Time elapse: %dms", time.Since(now).Milliseconds())
+
+			for _, g := range gf {
+				log.Println(string(*g.Content))
+			}
 
 		default:
 			fmt.Println("unknown packet:", p)

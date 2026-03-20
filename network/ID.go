@@ -7,18 +7,33 @@ import "strconv"
 type ID uint16
 
 const (
-	IDVerification  ID = 0
-	IDRVerification ID = 1
+	IDVerification    ID = 0
+	IDRVerification   ID = 1
+	IDSetNode         ID = 2
+	IDDeleteNode      ID = 3
+	IDConnectNodes    ID = 4
+	IDUpdateNodeField ID = 5
+	IDExport          ID = 6
 )
 
 var EnumNamesID = map[ID]string{
-	IDVerification:  "Verification",
-	IDRVerification: "RVerification",
+	IDVerification:    "Verification",
+	IDRVerification:   "RVerification",
+	IDSetNode:         "SetNode",
+	IDDeleteNode:      "DeleteNode",
+	IDConnectNodes:    "ConnectNodes",
+	IDUpdateNodeField: "UpdateNodeField",
+	IDExport:          "Export",
 }
 
 var EnumValuesID = map[string]ID{
-	"Verification":  IDVerification,
-	"RVerification": IDRVerification,
+	"Verification":    IDVerification,
+	"RVerification":   IDRVerification,
+	"SetNode":         IDSetNode,
+	"DeleteNode":      IDDeleteNode,
+	"ConnectNodes":    IDConnectNodes,
+	"UpdateNodeField": IDUpdateNodeField,
+	"Export":          IDExport,
 }
 
 func (v ID) String() string {

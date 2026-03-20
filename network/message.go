@@ -15,6 +15,9 @@ type Message interface {
 var packetRegistry = map[ID]func() Message{
 	IDVerification:  func() Message { return &VerificationPacket{} },
 	IDRVerification: func() Message { return &VerificationResponsePacket{} },
+
+	IDSetNode:      func() Message { return &SetNodePacket{} },
+	IDExport:       func() Message { return &ExportPacket{} },
 }
 
 func getPayloadBytes(packet *Packet) []byte {
