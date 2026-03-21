@@ -105,9 +105,9 @@ func (g *Generator) EvalIndexed(buf *bytes.Buffer, opcode golang.Opcode, node *p
 		return g.op_var(buf, node, evalFlags)
 	case golang.OpcodeIf:
 		return g.op_if(buf, node, evalFlags)
-		/*case golang.OpcodeFunc:
-			return g.op_func(buf, node, evalFlags)
-		case golang.OpcodeCall:
+	case golang.OpcodeFunc:
+		return g.op_func(buf, node, evalFlags)
+		/*case golang.OpcodeCall:
 			return g.op_call(buf, node, evalFlags)
 		case golang.OpcodeType:
 			return g.op_type(buf, node, evalFlags)
@@ -364,4 +364,39 @@ func (g *Generator) evalType(buf *bytes.Buffer, t *golang.TypeDef) error {
 	default:
 		return fmt.Errorf("unsupported type: %d", kind)
 	}
+}
+
+func (g *Generator) writePairList(buf *bytes.Buffer, listLength int, getPair func(j int) uint64) error {
+	for i := range listLength {
+		if i > 0 {
+			buf.Write(TokenComma.Bytes())
+			buf.Write(TokenSpace.Bytes())
+		}
+
+		packed := getPair(i)
+
+		typeId := uint32(packed & 0xffffffff)
+		valueId := uint32(packed >> 32)
+
+		name, ok := g.LookUpStr(valueId)
+		if !ok {
+			return fmt.Errorf("string with id %d is undefined", valueId)
+		}
+
+		if len(name) > 0 {
+			buf.Write(name)
+			buf.Write(TokenSpace.Bytes())
+		}
+
+		// Evaluate and write the field definition to the buffer
+		def, ok := g.LookUpType(typeId)
+		if !ok {
+			return fmt.Errorf("type with id %d is undefined", typeId)
+		}
+
+		if err := g.evalType(buf, def); err != nil {
+			return err
+		}
+	}
+	return nil
 }
