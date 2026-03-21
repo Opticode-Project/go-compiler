@@ -99,10 +99,10 @@ func (g *Generator) EvalIndexed(buf *bytes.Buffer, opcode golang.Opcode, node *p
 		return g.op_package(buf, node, evalFlags)
 	case golang.OpcodeImport:
 		return g.op_import(buf, node, evalFlags)
-	/*case golang.OpcodeConst:
+	case golang.OpcodeConst:
 		return g.op_const(buf, node, evalFlags)
 	case golang.OpcodeVar:
-		return g.op_var(buf, node, evalFlags)*/
+		return g.op_var(buf, node, evalFlags)
 	case golang.OpcodeIf:
 		return g.op_if(buf, node, evalFlags)
 		/*case golang.OpcodeFunc:
@@ -122,10 +122,10 @@ func (g *Generator) EvalBinary(buf *bytes.Buffer, opcode golang.Opcode, node *pr
 	switch opcode {
 	case golang.OpcodeImportValue:
 		return g.op_importValue(buf, node, evalFlags)
-	/*case golang.OpcodeConstValue:
+	case golang.OpcodeConstValue:
 		return g.op_constValue(buf, node, evalFlags)
 	case golang.OpcodeVarValue:
-		return g.op_varValue(buf, node, evalFlags)*/
+		return g.op_varValue(buf, node, evalFlags)
 
 	case golang.OpcodeEqual:
 		return g.op_binary(buf, node, TokenCompare, evalFlags)
@@ -336,4 +336,32 @@ func (g *Generator) evalValue(buf *bytes.Buffer, nodeValue *program.NodeValue, i
 
 	buf.Write(value)
 	return nil
+}
+
+func (g *Generator) evalType(buf *bytes.Buffer, t *golang.TypeDef) error {
+	kind := golang.Kind(t.Base())
+
+	ty := new(golang.Type)
+
+	// primitive
+	if t.Type(ty) == nil {
+		buf.WriteString(kind.String())
+		return nil
+	}
+
+	switch kind {
+	// *ptr
+	case golang.Kindpointer:
+		buf.Write(TokenStar.Bytes())
+
+		elem, ok := g.LookUpType(ty.Elem())
+		if !ok {
+			return fmt.Errorf("type with id %d is undefined", ty.Elem())
+		}
+
+		return g.evalType(buf, elem)
+
+	default:
+		return fmt.Errorf("unsupported type: %d", kind)
+	}
 }
