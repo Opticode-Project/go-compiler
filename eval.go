@@ -107,12 +107,12 @@ func (g *Generator) EvalIndexed(buf *bytes.Buffer, opcode golang.Opcode, node *p
 		return g.op_if(buf, node, evalFlags)
 	case golang.OpcodeFunc:
 		return g.op_func(buf, node, evalFlags)
-		/*case golang.OpcodeCall:
-			return g.op_call(buf, node, evalFlags)
-		case golang.OpcodeType:
-			return g.op_type(buf, node, evalFlags)
-		case golang.OpcodeReturn:
-			return g.op_return(buf, node, evalFlags)*/
+	case golang.OpcodeCall:
+		return g.op_call(buf, node, evalFlags)
+	case golang.OpcodeType:
+		return g.op_type(buf, node, evalFlags)
+	case golang.OpcodeReturn:
+		return g.op_return(buf, node, evalFlags)
 	}
 
 	return fmt.Errorf("invalid opcode on node with opcode of %s", opcode)
@@ -200,10 +200,10 @@ func (g *Generator) EvalUnary(buf *bytes.Buffer, opcode golang.Opcode, node *pro
 	switch opcode {
 	case golang.OpcodeNot:
 		return g.op_unaryPrefix(buf, node, TokenNot, evalFlags)
-	/*case golang.OpcodeDefer:
+	case golang.OpcodeDefer:
 		return g.op_defer(buf, node, evalFlags)
 	case golang.OpcodeGoRoutine:
-		return g.op_goRoutine(buf, node, evalFlags)*/
+		return g.op_goRoutine(buf, node, evalFlags)
 
 	case golang.OpcodeInc:
 		return g.op_unarySuffix(buf, node, TokenIncrement, evalFlags)
@@ -359,7 +359,195 @@ func (g *Generator) evalType(buf *bytes.Buffer, t *golang.TypeDef) error {
 			return fmt.Errorf("type with id %d is undefined", ty.Elem())
 		}
 
+		// Complex types: *([]int)
+		if elem.Type(nil) != nil {
+			buf.Write(TokenParenLeft.Bytes())
+			if err := g.evalType(buf, elem); err != nil {
+				return err
+			}
+			buf.Write(TokenParenRight.Bytes())
+			return nil
+		}
+
 		return g.evalType(buf, elem)
+
+	case golang.Kindslice:
+		buf.WriteString("[]")
+
+		elem, ok := g.LookUpType(ty.Elem())
+		if !ok {
+			return fmt.Errorf("type with id %d is undefined", ty.Elem())
+		}
+
+		return g.evalType(buf, elem)
+
+	case golang.Kindarray:
+		fmt.Fprintf(buf, "[%d]", ty.Size())
+
+		elem, ok := g.LookUpType(ty.Elem())
+		if !ok {
+			return fmt.Errorf("type with id %d is undefined", ty.Elem())
+		}
+
+		return g.evalType(buf, elem)
+
+	case golang.Kindmap_:
+		buf.Write(TokenMap.Bytes())
+		buf.Write(TokenBracketLeft.Bytes())
+
+		key, ok := g.LookUpType(ty.Key())
+		if !ok {
+			return fmt.Errorf("type with id %d is undefined", ty.Key())
+		}
+
+		if err := g.evalType(buf, key); err != nil {
+			return err
+		}
+
+		buf.Write(TokenBracketRight.Bytes())
+
+		value, ok := g.LookUpType(ty.Elem())
+		if !ok {
+			return fmt.Errorf("type with id %d is undefined", ty.Elem())
+		}
+
+		return g.evalType(buf, value)
+
+	// type Name struct {}
+	case golang.Kindstruct_:
+		buf.Write(TokenStruct.Bytes())
+		buf.Write(TokenSpace.Bytes())
+
+		buf.Write(TokenBraceLeft.Bytes())
+		buf.Write(TokenNewLine.Bytes())
+
+		// Struct fields
+		for i := 0; i < ty.FieldsLength(); i++ {
+			buf.Write(TokenTab.Bytes())
+
+			var f golang.StructField
+			ty.Fields(&f, i)
+
+			// Looks for the name of the field
+			name, ok := g.LookUpStr(f.Name())
+			if !ok {
+				return fmt.Errorf("string with id %d is undefined", f.Name())
+			}
+			buf.Write(name)
+			buf.Write(TokenSpace.Bytes())
+
+			// Looks for the field definition
+			def, ok := g.LookUpType(f.Type())
+			if !ok {
+				return fmt.Errorf("type with id %d is undefined", f.Type())
+			}
+
+			if def.Base() == uint32(golang.Kindfunc_) {
+				buf.Write(TokenFunc.Bytes())
+			}
+
+			// Evaluate and write the field definition to the buffer
+			if err := g.evalType(buf, def); err != nil {
+				return err
+			}
+
+			buf.Write(TokenNewLine.Bytes())
+		}
+
+		buf.Write(TokenBraceRight.Bytes())
+		return nil
+
+	// type Name interface {}
+	case golang.Kindinterface_:
+		buf.Write(TokenInterface.Bytes())
+		buf.Write(TokenSpace.Bytes())
+
+		buf.Write(TokenBraceLeft.Bytes())
+		buf.Write(TokenNewLine.Bytes())
+
+		// Interface functions
+		for i := 0; i < ty.MethodsLength(); i++ {
+			buf.Write(TokenTab.Bytes())
+
+			packed := ty.Methods(i)
+
+			defId := uint32(packed & 0xffffffff)
+			//valueId := uint32(packed >> 32)
+
+			// Look for the method defintion
+			def, ok := g.LookUpType(defId)
+			if !ok {
+				return fmt.Errorf("type with id %d is undefined", defId)
+			}
+
+			// Write the function name to the buffer
+			funcName, ok := g.LookUpStr(def.Id())
+			if !ok {
+				return fmt.Errorf("string with id %d is undefined", def.Id())
+			}
+			buf.Write(funcName)
+			buf.Write(TokenSpace.Bytes())
+
+			// Evaluate and write the type definition to the buffer
+			if err := g.evalType(buf, def); err != nil {
+				return err
+			}
+
+			buf.Write(TokenNewLine.Bytes())
+		}
+
+		buf.Write(TokenBraceRight.Bytes())
+		return nil
+
+	// (a uint8, b int32) uint32
+	case golang.Kindfunc_:
+		//buf.Write(TokenFunc.Bytes())
+
+		// Parameters
+		buf.Write(TokenParenLeft.Bytes())
+		if ty.ParamsLength() > 0 {
+			err := g.writePairList(buf, ty.ParamsLength(), ty.Params)
+
+			if err != nil {
+				return err
+			}
+		}
+		buf.Write(TokenParenRight.Bytes())
+
+		// Return values
+		if ty.ResultsLength() > 0 {
+			buf.Write(TokenSpace.Bytes())
+
+			// look at first result to decide parentheses
+			packed := ty.Results(0)
+
+			//typeId := uint32(packed & 0xffffffff)
+			valueId := uint32(packed >> 32)
+
+			// The key of the first result,
+			// if empty then result would be for example: "uint8"
+			// otherwise: "(key uint8)"
+			name, ok := g.LookUpStr(valueId)
+			if !ok {
+				return fmt.Errorf("string with id %d is undefined", valueId)
+			}
+
+			// Checks if there is more than one result or the first result has a key
+			needParens := ty.ResultsLength() > 1 || len(name) > 0
+			if needParens {
+				buf.Write(TokenParenLeft.Bytes())
+			}
+
+			err := g.writePairList(buf, ty.ResultsLength(), ty.Results)
+			if err != nil {
+				return err
+			}
+
+			if needParens {
+				buf.Write(TokenParenRight.Bytes())
+			}
+		}
+		return nil
 
 	default:
 		return fmt.Errorf("unsupported type: %d", kind)

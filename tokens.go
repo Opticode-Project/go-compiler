@@ -70,6 +70,8 @@ const (
 	TokenMap
 	TokenType
 	TokenChan
+	TokenStruct
+	TokenInterface
 	TokenReturn
 )
 
@@ -141,6 +143,8 @@ var tokens = [][]byte{
 	[]byte("map"),
 	[]byte("type"),
 	[]byte("chan"),
+	[]byte("struct"),
+	[]byte("interface"),
 	[]byte("return"),
 }
 
