@@ -113,6 +113,13 @@ func (g *Generator) EvalIndexed(buf *bytes.Buffer, opcode golang.Opcode, node *p
 		return g.op_type(buf, node, evalFlags)
 	case golang.OpcodeReturn:
 		return g.op_return(buf, node, evalFlags)
+
+	case golang.OpcodeSwitch:
+		return g.op_switch(buf, node, evalFlags)
+	case golang.OpcodeCase:
+		return g.op_case(buf, node, evalFlags)
+	case golang.OpcodeDefault:
+		return g.op_default(buf, node, evalFlags)
 	}
 
 	return fmt.Errorf("invalid opcode on node with opcode of %s", opcode)

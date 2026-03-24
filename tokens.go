@@ -14,6 +14,7 @@ const (
 	TokenBracketLeft  // [
 	TokenBracketRight // ]
 	TokenComma        // ,
+	TokenColon        // :
 
 	TokenPlus    // +
 	TokenMinus   // -
@@ -72,6 +73,9 @@ const (
 	TokenChan
 	TokenStruct
 	TokenInterface
+	TokenSwitch
+	TokenCase
+	TokenDefault
 	TokenReturn
 )
 
@@ -87,6 +91,7 @@ var tokens = [][]byte{
 	[]byte("["),
 	[]byte("]"),
 	[]byte(","),
+	[]byte(":"),
 
 	[]byte("+"),
 	[]byte("-"),
@@ -145,6 +150,9 @@ var tokens = [][]byte{
 	[]byte("chan"),
 	[]byte("struct"),
 	[]byte("interface"),
+	[]byte("switch"),
+	[]byte("case"),
+	[]byte("default"),
 	[]byte("return"),
 }
 
