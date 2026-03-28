@@ -61,28 +61,29 @@ const (
 	OpcodeReceive          Opcode = 51
 	OpcodeAddrOf           Opcode = 52
 	OpcodeDeref            Opcode = 53
-	OpcodeCall             Opcode = 54
-	OpcodeReturn           Opcode = 55
-	OpcodeDefer            Opcode = 56
-	OpcodeGoRoutine        Opcode = 57
-	OpcodeMap              Opcode = 58
-	OpcodeArray            Opcode = 59
-	OpcodeChan             Opcode = 60
-	OpcodeConstructor      Opcode = 61
-	OpcodePanic            Opcode = 62
-	OpcodeRecover          Opcode = 63
-	OpcodeMake             Opcode = 64
-	OpcodeNew              Opcode = 65
-	OpcodeLen              Opcode = 66
-	OpcodeCap              Opcode = 67
-	OpcodeAppend           Opcode = 68
-	OpcodeCopy             Opcode = 69
-	OpcodeClose            Opcode = 70
-	OpcodeComplex          Opcode = 71
-	OpcodeReal             Opcode = 72
-	OpcodeImag             Opcode = 73
-	OpcodePrint            Opcode = 74
-	OpcodePrintln          Opcode = 75
+	OpcodeReference        Opcode = 54
+	OpcodeCall             Opcode = 55
+	OpcodeReturn           Opcode = 56
+	OpcodeDefer            Opcode = 57
+	OpcodeGoRoutine        Opcode = 58
+	OpcodeMap              Opcode = 59
+	OpcodeArray            Opcode = 60
+	OpcodeChan             Opcode = 61
+	OpcodeConstructor      Opcode = 62
+	OpcodePanic            Opcode = 63
+	OpcodeRecover          Opcode = 64
+	OpcodeMake             Opcode = 65
+	OpcodeNew              Opcode = 66
+	OpcodeLen              Opcode = 67
+	OpcodeCap              Opcode = 68
+	OpcodeAppend           Opcode = 69
+	OpcodeCopy             Opcode = 70
+	OpcodeClose            Opcode = 71
+	OpcodeComplex          Opcode = 72
+	OpcodeReal             Opcode = 73
+	OpcodeImag             Opcode = 74
+	OpcodePrint            Opcode = 75
+	OpcodePrintln          Opcode = 76
 )
 
 var EnumNamesOpcode = map[Opcode]string{
@@ -140,6 +141,7 @@ var EnumNamesOpcode = map[Opcode]string{
 	OpcodeReceive:          "Receive",
 	OpcodeAddrOf:           "AddrOf",
 	OpcodeDeref:            "Deref",
+	OpcodeReference:        "Reference",
 	OpcodeCall:             "Call",
 	OpcodeReturn:           "Return",
 	OpcodeDefer:            "Defer",
@@ -219,6 +221,7 @@ var EnumValuesOpcode = map[string]Opcode{
 	"Receive":          OpcodeReceive,
 	"AddrOf":           OpcodeAddrOf,
 	"Deref":            OpcodeDeref,
+	"Reference":        OpcodeReference,
 	"Call":             OpcodeCall,
 	"Return":           OpcodeReturn,
 	"Defer":            OpcodeDefer,

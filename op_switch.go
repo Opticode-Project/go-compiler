@@ -26,7 +26,11 @@ func (g *Generator) op_switch(buf *bytes.Buffer, node *program.IndexedNode, flag
 		case field.Flags()&uint32(golang.ValueFlagSwitchExp) != 0:
 			buf.Write(TokenSpace.Bytes())
 
-			if err := g.evalNode(buf, target, 0); err != nil {
+			if target.Opcode() != uint32(golang.OpcodeReference) {
+				return fmt.Errorf("Expected a reference node")
+			}
+
+			if err := g.evalValue(buf, &field, false); err != nil {
 				return err
 			}
 

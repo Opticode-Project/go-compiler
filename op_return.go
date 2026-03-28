@@ -8,12 +8,14 @@ import (
 	program "github.com/Opticode-Project/go-compiler/program"
 )
 
+const returnParamsGrowthModifer = 16
+
 // return a, b
 func (g *Generator) op_return(buf *bytes.Buffer, node *program.IndexedNode, flags EvalFlags) error {
 	length := node.FieldsLength()
 
 	var params bytes.Buffer
-	params.Grow(length * 16)
+	params.Grow(length * returnParamsGrowthModifer)
 
 	for i := range length {
 		var field program.NodeValue

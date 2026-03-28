@@ -9,15 +9,13 @@ import (
 )
 
 func (g *Generator) op_case(buf *bytes.Buffer, node *program.IndexedNode, flags EvalFlags) error {
-	buf.Write(TokenCase.Bytes())
-	buf.Write(TokenSpace.Bytes())
-
 	var (
 		conditions bytes.Buffer
 		body       bytes.Buffer
+		hasExpr    = false
 	)
 
-	for i := 0; i < node.FieldsLength(); i++ {
+	for i := range node.FieldsLength() {
 		var field program.NodeValue
 		node.Fields(&field, i)
 
@@ -33,9 +31,11 @@ func (g *Generator) op_case(buf *bytes.Buffer, node *program.IndexedNode, flags 
 				conditions.Write(TokenSpace.Bytes())
 			}
 
-			if err := g.evalNode(&conditions, target, 0); err != nil {
+			if err := g.evalValue(&conditions, &field, false); err != nil {
 				return err
 			}
+
+			hasExpr = true
 
 		case field.Flags()&uint32(golang.ValueFlagCaseBody) != 0:
 			body.Write(TokenTab.Bytes())
@@ -47,6 +47,13 @@ func (g *Generator) op_case(buf *bytes.Buffer, node *program.IndexedNode, flags 
 			body.Write(TokenNewLine.Bytes())
 		}
 	}
+
+	if !hasExpr {
+		return fmt.Errorf("Missing case expression")
+	}
+
+	buf.Write(TokenCase.Bytes())
+	buf.Write(TokenSpace.Bytes())
 
 	buf.Write(conditions.Bytes())
 	buf.Write(TokenColon.Bytes())

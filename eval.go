@@ -223,6 +223,9 @@ func (g *Generator) EvalUnary(buf *bytes.Buffer, opcode golang.Opcode, node *pro
 
 	case golang.OpcodeReceive:
 		return g.op_unaryPrefix(buf, node, TokenArrowLeft, evalFlags)
+
+	case golang.OpcodeReference:
+		return g.op_reference(buf, node, evalFlags)
 	}
 
 	return fmt.Errorf("invalid opcode on node with opcode of %s", opcode)
